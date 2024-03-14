@@ -2,12 +2,14 @@
 #ifndef _PCB_H_
 #define _PCB_H_
 #include <stdbool.h>
+#include "List.h"
 
 /*
 #define LIST_SUCCESS 0
 #define LIST_FAIL -1
 */
 
+#define NUM_SEMAPHORE 5
 
 enum ProcessState {
     RUNNING,
@@ -29,6 +31,8 @@ struct semaphore_t {
     int sem_value;
     List plist; // Processes blocked on this semaphore
 };
+
+sem_t sem_array[NUM_SEMAPHORE]; 
 
 // Create a process and put it on the appropriate ready queue.
 // Reports: success or failure, the pid of created process on success.
@@ -72,11 +76,11 @@ int new_Sem(int semaphore, unsigned int init);
 // Execute the semaphore P operation on behalf of the running process. Assume semaphore 
 //  IDs to be numbered 0 through 4.
 // Reports: Action taken (blocked or not) as well as success or failure.
-int sem_P(int semaphore);
+int sem_P(int sem_id);
 
 // Execute the semaphore V operation on behalf of the running process. Assume semaphore 
 //  IDs to be numbered 0 through 4.
-int sem_V(int semaphore);
+int sem_V(int sem_id);
 
 // Dump complete state information of process to screen.
 void procinfo(int pid);

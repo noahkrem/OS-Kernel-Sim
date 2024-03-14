@@ -55,20 +55,20 @@ int reply(int pid, char *msg) {
 // Initialize the named semaphore with the value given. IDs can take a value from 0 to 4. 
 //  This can only be done once for a semaphore - subsequent attempts result in error.
 // Reports: Action taken as well as success or failure.
-int new_Sem(int semaphore, unsigned int init) {
+int new_Sem(int sem_id, unsigned int init) {
 
 }
 
 // Execute the semaphore P operation on behalf of the running process. Assume semaphore 
 //  IDs to be numbered 0 through 4.
 // Reports: Action taken (blocked or not) as well as success or failure.
-int sem_P(int semaphore) {
-
+int sem_P(int sem_id) {
+    sem_array[semaphore].sem_value--;
 }
 
 // Execute the semaphore V operation on behalf of the running process. Assume semaphore 
 //  IDs to be numbered 0 through 4.
-int sem_V(int semaphore) {
+int sem_V(int sem_id) {
 
 }
 
