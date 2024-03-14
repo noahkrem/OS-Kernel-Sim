@@ -103,7 +103,8 @@ static void List_print(List * pList) {
 
 // Makes a new, empty list, and returns its reference on success. 
 // Returns a NULL pointer on failure.
-List* List_create() {#include <sys/queue.h>
+List* List_create() {
+
     // If this is the FIRST list to be created, initialize the "unused" arrays
     // Note that these index values should never change after this point
     if ((totalListCount + listsFreed) == 0) {
