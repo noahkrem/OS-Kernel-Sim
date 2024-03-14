@@ -7,15 +7,15 @@
 
 
 
-void* dequeue(List list) {
-    list.List_first();
-    Node tempNode = list.List_remove();
-    return tempNode;
-}
+// void* dequeue(List list) {
+//     list.List_first();
+//     Node tempNode = list.List_remove();
+//     return tempNode;
+// }
 
-void enqueue(List list, void* item) {
-    List_append(item);
-}
+// void enqueue(List list, void* item) {
+//     List_append(item);
+// }
 
 int main(int argc, char *argv[]) {
     List* ready_top = List_create();

@@ -11,7 +11,7 @@
 
 #define NUM_SEMAPHORE 5
 
-enum ProcessState {
+enum ProcState {
     RUNNING,
     READY,
     BLOCKED
@@ -21,7 +21,7 @@ typedef struct PCB_s PCB;
 struct PCB_s {
     int pid;
     int priority;
-    ProcessState state;
+    enum ProcState state;
     char *send_msg;
     char *reply_msg;
 };
@@ -29,10 +29,8 @@ struct PCB_s {
 typedef struct semaphore_t sem_t;
 struct semaphore_t {
     int sem_value;
-    List plist; // Processes blocked on this semaphore
+    List *pList; // Processes blocked on this semaphore
 };
-
-sem_t sem_array[NUM_SEMAPHORE]; 
 
 // Create a process and put it on the appropriate ready queue.
 // Reports: success or failure, the pid of created process on success.
@@ -49,7 +47,7 @@ int kill(int pid);
 
 // Kill the currently running process.
 // Reports: Process scheduling information (which process now gets control of the cpu).
-void exit();
+void exit_proc();
 
 // Time quantum of the running process expires.
 // Reports: Action taken (process scheduling information).
@@ -87,6 +85,11 @@ void procinfo(int pid);
 
 // Display all process queues and their contents
 void totalinfo();
+
+
+// PRIVATE FUNCTIONS
+
+static void* dequeue(List * list);
 
 
 #endif

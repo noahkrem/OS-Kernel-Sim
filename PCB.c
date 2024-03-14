@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 static PCB* CURRENT = NULL;
+static sem_t sem_array[NUM_SEMAPHORE]; 
 
 // Create a process and put it on the appropriate ready queue.
 // Reports: success or failure, the pid of created process on success.
@@ -25,7 +26,7 @@ int kill(int pid) {
 
 // Kill the currently running process.
 // Reports: Process scheduling information (which process now gets control of the cpu).
-void exit() {
+void exit_proc() {
 
 }
 
@@ -77,7 +78,7 @@ int sem_P(int sem_id) {
 int sem_V(int sem_id) {
     sem_array[sem_id].sem_value++;
     if(sem_array[sem_id].sem_value <= 0) {
-        PCB* temp = dequeue(sem_array[sem_id].pList);
+        PCB* temp = (PCB *)dequeue(sem_array[sem_id].pList);
         temp->state = READY;
     }
 }
@@ -95,8 +96,8 @@ void totalinfo() {
 
 // PRIVATE FUNCTIONS
 
-static void* dequeue(List list) {
-    list.List_first();
-    Node tempNode = list.List_remove();
-    return tempNode;
+static void * dequeue(List * list) {
+    List_first(list);
+    void *ret = List_remove(list);
+    return ret;
 }
