@@ -2,6 +2,8 @@
 #include "PCB.h"
 #include <stdio.h>
 
+static PCB* CURRENT = NULL;
+
 // Create a process and put it on the appropriate ready queue.
 // Reports: success or failure, the pid of created process on success.
 int create(int priority) {
@@ -63,13 +65,21 @@ int new_Sem(int sem_id, unsigned int init) {
 //  IDs to be numbered 0 through 4.
 // Reports: Action taken (blocked or not) as well as success or failure.
 int sem_P(int sem_id) {
-    sem_array[semaphore].sem_value--;
+    sem_array[sem_id].sem_value--;
+    if(sem_array[sem_id].sem_value < 0) {
+        List_append(sem_array[sem_id].pList, CURRENT);
+        CURRENT->state = BLOCKED;
+    }
 }
 
 // Execute the semaphore V operation on behalf of the running process. Assume semaphore 
 //  IDs to be numbered 0 through 4.
 int sem_V(int sem_id) {
-
+    sem_array[sem_id].sem_value++;
+    if(sem_array[sem_id].sem_value <= 0) {
+        PCB* temp = dequeue(sem_array[sem_id].pList);
+        temp->state = READY;
+    }
 }
 
 // Dump complete state information of process to screen.
@@ -80,4 +90,13 @@ void procinfo(int pid) {
 // Display all process queues and their contents
 void totalinfo() {
     
+}
+
+
+// PRIVATE FUNCTIONS
+
+static void* dequeue(List list) {
+    list.List_first();
+    Node tempNode = list.List_remove();
+    return tempNode;
 }
