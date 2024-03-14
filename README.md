@@ -17,3 +17,17 @@ Exit (E) - Kill the currently running process.
 Quantum (Q) - Time quantum of running process expires
 
 Send (S) - Send a message to another process, block until reply.
+
+Receive (R) - Receive a message, block until one arrives.
+
+Reply (Y) - Unblocks sender and delivers reply.
+
+New Semaphore (N) - Initialize the named semaphore with the value given. IDs can take a value from 0 to 4. This can only be done once for a semaphore, subsequent attempts result in error.
+
+Semaphore P (P) - Execute the semaphore P operation on behalf of the running process. Assume sempahores IDs numbered 0 through 4.
+
+Semaphore V (V) - Execute the semaphore V operation on behalf of the running process. Assume sempahores IDs numbered 0 through 4.
+
+Procinfo (I) - Dump complete state information of process to screen.
+
+Totalinfo (T) - Display all process queues and their contents.
