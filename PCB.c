@@ -4,6 +4,8 @@
 
 static PCB* CURRENT = NULL;
 static sem_t sem_array[NUM_SEMAPHORE]; 
+static List * ready_lists[NUM_READY_LIST];
+static List * waiting_lists[NUM_WAITING_LIST];
 
 // Create a process and put it on the appropriate ready queue.
 // Reports: success or failure, the pid of created process on success.
@@ -96,8 +98,21 @@ void totalinfo() {
 
 // PRIVATE FUNCTIONS
 
+// Dequeue from list
 static void * dequeue(List * list) {
     List_first(list);
     void *ret = List_remove(list);
     return ret;
+}
+
+// Initialize all lists
+void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * waitingSend, List * waitingReceive) {
+
+    ready_lists[0] = readyTop;
+    ready_lists[1] = readyNorm;
+    ready_lists[2] = readyLow;
+
+    waiting_lists[0] = waitingSend;
+    waiting_lists[1] = waitingReceive;
+
 }

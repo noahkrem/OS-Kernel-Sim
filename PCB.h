@@ -10,6 +10,8 @@
 */
 
 #define NUM_SEMAPHORE 5
+#define NUM_READY_LIST 3
+#define NUM_WAITING_LIST 2
 
 enum ProcState {
     RUNNING,
@@ -87,9 +89,13 @@ void procinfo(int pid);
 void totalinfo();
 
 
-// PRIVATE FUNCTIONS
+// --------- -UTILITY FUNCTIONS----------
 
+// Dequeue from list
 static void* dequeue(List * list);
+
+// Initialize all lists
+void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * waitingSend, List * waitingReceive);
 
 
 #endif
