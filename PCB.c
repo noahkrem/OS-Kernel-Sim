@@ -175,7 +175,15 @@ int sem_V(int sem_id) {
 // Dump complete state information of process to screen.
 void procinfo(int pid) {
 
-    PCB *temp = findProcess(pid);
+    PCB *temp = NULL;
+
+    // Either the process is the currently running process, or it is stored in a list
+    if (CURRENT == NULL || CURRENT->pid != pid) {
+        printf("entering find process...\n");
+        temp = findProcess(pid);
+    } else if (CURRENT->pid == pid) {
+        temp = CURRENT;
+    }
 
     if (temp != NULL) {
         printf("---Process Information---\n");
@@ -354,6 +362,7 @@ static bool pComparator(void * process, void * pComparisonArg) {
 
     PCB *processPointer = (PCB *)process;
     unsigned int intPointer = (uintptr_t)pComparisonArg;
+    printf("comparison int: %i\n", intPointer);
 
     if (processPointer->pid == intPointer) {
         return true;
@@ -398,7 +407,7 @@ static PCB* nextProcess() {
 }
 
 // Search the relevant queues for the given pid
-static PCB *findProcess(int pid) {
+static PCB* findProcess(int pid) {
 
     PCB *temp = NULL;
     
@@ -406,26 +415,31 @@ static PCB *findProcess(int pid) {
     if (temp != NULL) {
         return temp;
     } 
+    printf("Not in ready list 0...\n");
 
     temp = List_search(ready_lists[1], pComparator, &pid);
     if (temp != NULL) {
         return temp;
     }
+    printf("Not in ready list 1...\n");
 
     temp = List_search(ready_lists[2], pComparator, &pid);
     if (temp != NULL) {
         return temp;
     }
+    printf("Not in ready list 2...\n");
 
     temp = List_search(waiting_lists[0], pComparator, &pid);
     if (temp != NULL) {
         return temp;
     }
+    printf("Not in waiting list 0...\n");
 
     temp = List_search(waiting_lists[1], pComparator, &pid);
     if (temp != NULL) {
         return temp;
     }
+    printf("Not in waiting list 1...\n");
 
     // If we reach this line, process with the given pid was not found
     return NULL;
