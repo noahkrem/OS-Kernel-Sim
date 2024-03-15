@@ -4,12 +4,9 @@
 #include <stdbool.h>
 #include "List.h"
 
-/*
-#define LIST_SUCCESS 0
-#define LIST_FAIL -1
-*/
 
 #define NUM_SEMAPHORE 5
+#define NUM_PROCESSES 5
 #define NUM_READY_LIST 3
 #define NUM_WAITING_LIST 2
 

@@ -3,6 +3,8 @@
 #include <stdio.h>
 
 static PCB* CURRENT = NULL;
+static unsigned int PID_CURR = 0;
+
 static sem_t sem_array[NUM_SEMAPHORE]; 
 static List * ready_lists[NUM_READY_LIST];
 static List * waiting_lists[NUM_WAITING_LIST];
@@ -10,6 +12,20 @@ static List * waiting_lists[NUM_WAITING_LIST];
 // Create a process and put it on the appropriate ready queue.
 // Reports: success or failure, the pid of created process on success.
 int create(int priority) {
+
+    // Check that the given priority is valid
+    if (priority < 0 || priority > 2) {
+        return -1;
+    }
+
+    PCB *newPCB = malloc(sizeof(PCB));
+    newPCB->pid = PID_CURR;
+    PID_CURR++;
+    newPCB->priority = priority;
+
+    if (readyListEmpty()) {
+
+    }
 
 }
 
