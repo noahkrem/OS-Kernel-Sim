@@ -94,5 +94,7 @@ static void* dequeue(List * list);
 // Initialize all lists
 void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * waitingSend, List * waitingReceive);
 
+void checkInput();
 
+void readyListEmpty();
 #endif
