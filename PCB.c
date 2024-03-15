@@ -54,10 +54,25 @@ int create(int priority) {
 }
 
 // Copy the currently running process and put it on the ready Q corresponding to the
-//  original process' priority. Attempting to Fork the "init" process (see below) should fail.
+// original process' priority. Attempting to Fork the "init" process (see below) should fail.
 // Reports: Success or failure, the pid of the resulting process on success.
+// Returns -1 on failure, the pid on success
 int fork() {
-    
+    if(CURRENT == NULL || CURRENT->pid == 0) {
+        return -1;
+    }
+    PCB *newPCB = malloc(sizeof(PCB));
+    newPCB->pid = PID_CURR;
+    PID_CURR++;
+    newPCB->priority = CURRENT->priority;
+
+   if(List_append(ready_lists[newPCB->priority], newPCB) == -1) {
+        PID_CURR--;
+        free(newPCB);
+        return -1;   
+   }
+
+   return newPCB->pid;  
 }
 
 // Kill the named process and remove it from the system.
@@ -204,6 +219,8 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * wait
     waiting_lists[0] = waitingSend;
     waiting_lists[1] = waitingReceive;
 
+    create(0);
+
     while(CURRENT == NULL && readyListEmpty()) {
         checkInput();
     }
@@ -212,6 +229,7 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * wait
 static void checkInput() {
     char input;
     int int_input;
+    int rv;
     scanf("%c", &input);
     switch (input) {
         case 'C':
@@ -225,11 +243,13 @@ static void checkInput() {
             }
             break;
         case 'F':
-            if(fork() == -1) {
+            rv = fork();
+            if(rv == -1) {
                 printf("failure\n");
             }
             else {
                 printf("success\n");
+                printf("PID: %d", rv);
             }
             break;
         case 'K':
