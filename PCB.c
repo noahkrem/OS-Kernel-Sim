@@ -140,7 +140,7 @@ void quantum() {
     temp->state = READY;
     List_append(ready_lists[temp->priority], temp);
 
-    printf("Current process is now: %d", CURRENT->pid);
+    printf("Current process is now: %d\n", CURRENT->pid);
 
     printf("Highest Priority Processes: \n");
     traverseList(ready_lists[0]);
@@ -242,7 +242,7 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * wait
 
     create(0);
 
-    while(CURRENT == NULL && readyListEmpty()) {
+    while(1) {
         checkInput();
     }
 }
@@ -270,7 +270,7 @@ static void checkInput() {
             }
             else {
                 printf("success\n");
-                printf("PID: %d", rv);
+                printf("PID: %d\n", rv);
             }
             break;
         case 'K':
@@ -289,7 +289,6 @@ static void checkInput() {
             break;
         case 'Q':
             quantum();
-            printf("process scheduling info\n");
             break;
         case 'S':
             printf("Please enter the pid of the process you want to send a message to\n");
@@ -355,8 +354,7 @@ static void checkInput() {
             procinfo(int_input);
         case 'T':
             totalinfo();
-        default:
-            printf("Error: invalid input");
+            break;
     } 
 
 }
@@ -387,6 +385,8 @@ static void freeProcess(PCB *process) {
 
 static void traverseList(List * pList) {
     List_first(pList);
+    PCB *curr = (PCB*)List_curr(pList);
+    printf("PID: %d\n", curr->pid);
     if(List_next(pList) != NULL) {
         PCB *curr = (PCB*)List_curr(pList);
         printf("PID: %d\n", curr->pid);
