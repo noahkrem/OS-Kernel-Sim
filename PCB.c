@@ -38,7 +38,7 @@ int create(int priority) {
         CURRENT = newPCB;
     }
     // If the currently running process is lower priority than the new process
-    else if (CURRENT->priority > newPCB->priority) {
+    else if (CURRENT->priority > newPCB->priority || CURRENT->pid == 0) {
         newPCB->state = RUNNING;
         List_append(ready_lists[CURRENT->priority], CURRENT);
         CURRENT = newPCB;
@@ -229,7 +229,7 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * wait
     waiting_lists[0] = waitingSend;
     waiting_lists[1] = waitingReceive;
 
-    create(0);
+    create(2);
 
     while(1) {
         checkInput();
@@ -307,7 +307,7 @@ static void checkInput() {
             }
             break;
         case 'N':
-            printf("Pleae enter the semaphore ID of the new semaphore\n");
+            printf("Please enter the semaphore ID of the new semaphore\n");
             scanf("%d", &int_input);
             // need to figure out number
             if(new_Sem(int_input, 0) == -1) {
@@ -318,7 +318,7 @@ static void checkInput() {
             }
             break;
         case 'P':
-            printf("Pleae enter the ID of the semaphore\n");
+            printf("Please enter the ID of the semaphore\n");
             scanf("%d", &int_input);
             if(sem_P(int_input) == -1) {
                 printf("failure\n");
@@ -328,7 +328,7 @@ static void checkInput() {
             }
             break;
         case 'V':
-            printf("Pleae enter the ID of the semaphore\n");
+            printf("Please enter the ID of the semaphore\n");
             scanf("%d", &int_input);
             if(sem_V(int_input) == -1) {
                 printf("failure\n");
