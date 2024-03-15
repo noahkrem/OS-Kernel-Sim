@@ -144,6 +144,15 @@ static void * dequeue(List * list) {
     return ret;
 }
 
+bool readyListEmpty() {
+    if((ready_lists[0]) == 0 && List_count(ready_lists[1]) == 0 && List_count(ready_lists[2]) == 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 // Initialize all lists
 void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * waitingSend, List * waitingReceive) {
 
@@ -230,7 +239,8 @@ void checkInput() {
         case 'N':
             printf("Pleae enter the semaphore ID of the new semaphore\n");
             scanf("%d", &int_input);
-            if(new_Sem(int_input) == -1) {
+            // need to figure out number
+            if(new_Sem(int_input, 0) == -1) {
                 printf("failure\n");
             }
             else {
@@ -266,13 +276,4 @@ void checkInput() {
         default:
             printf("Error: invalid input");
     } 
-
-    bool readyListEmpty(){
-        if((ready_lists[0]) == 0 && List_count(ready_lists[1]) == 0 && List_count(ready_lists[2]) == 0) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
 }
