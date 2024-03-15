@@ -532,6 +532,7 @@ void* List_search(List* pList, COMPARATOR_FN pComparator, void* pComparisonArg) 
 
     while (pList->current != NULL) {
         // Check for a match
+        printf("Comparing...\n");
         if (pComparator(pList->current->item, pComparisonArg) == true)
             return pList->current->item;
         // If no match, advance
