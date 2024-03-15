@@ -99,4 +99,5 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * wait
 
 void checkInput();
 
+void readyListEmpty();
 #endif

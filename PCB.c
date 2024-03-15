@@ -116,7 +116,7 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * wait
     waiting_lists[1] = waitingReceive;
 
     while(1) {
-        while(List_count(ready_lists[0]) == 0 && List_count(ready_lists[1]) == 0 && List_count(ready_lists[2]) == 0) {
+        while(readyListEmpty) {
             checkInput();
         }
     }
@@ -178,4 +178,12 @@ void checkInput() {
             break;
     } 
 
+    bool readyListEmpty(){
+        if((ready_lists[0]) == 0 && List_count(ready_lists[1]) == 0 && List_count(ready_lists[2]) == 0) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 }
