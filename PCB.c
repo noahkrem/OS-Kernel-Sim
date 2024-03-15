@@ -136,17 +136,17 @@ void quantum() {
     printf("Process %d's time quantum has expired\n", CURRENT->pid);
     PCB* temp = CURRENT;
     CURRENT = nextProcess();
-    CURRENT->status = RUNNING;
-    temp->status = READY;
+    CURRENT->state = RUNNING;
+    temp->state = READY;
     List_append(ready_lists[temp->priority], temp);
 
     printf("Current process is now: %d", CURRENT->pid);
 
-    printf("Highest Priority Processes: \n")
+    printf("Highest Priority Processes: \n");
     traverseList(ready_lists[0]);
-    printf("Normal Priority Processes: \n")
+    printf("Normal Priority Processes: \n");
     traverseList(ready_lists[1]);
-    printf("Loweset Priority Processes: \n")
+    printf("Loweset Priority Processes: \n");
     traverseList(ready_lists[2]);
 
 
