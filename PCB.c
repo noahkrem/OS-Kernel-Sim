@@ -115,4 +115,67 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * wait
     waiting_lists[0] = waitingSend;
     waiting_lists[1] = waitingReceive;
 
+    while(1) {
+        while(List_count(ready_lists[0]) == 0 && List_count(ready_lists[1]) == 0 && List_count(ready_lists[2]) == 0) {
+            checkInput();
+        }
+    }
+}
+
+void checkInput() {
+    char input;
+    int pid_input;
+    scanf("%c", &input);
+    switch (input) {
+        case 'C':
+            int priority;
+            printf("Please enter a priority number for the process (0 = high, 1 = norm, 2 = low)\n");
+            scanf("%d", &priority);
+            if(create(priority) == -1) {
+                printf("failure\n");
+            }
+            else {
+                printf("success\n");
+            }
+            break;
+        case 'F':
+            if(fork() == -1) {
+                printf("failure\n");
+            }
+            else {
+                printf("success\n");
+            }
+            break;
+        case 'K':
+            printf("Please enter the pid of the process you want to delete\n");
+            scanf("%d", &pid_input);
+            if(kill(pid_input) == -1) {
+                printf("failure\n");
+            }
+            else {
+                printf("succes\n");
+            }
+            break;
+        case 'E':
+            exit_proc();
+            printf("report info\n");
+            break;
+        case 'Q':
+            quantum();
+            printf("process scheduling info\n");
+            break;
+        case 'S':
+            printf("Please enter the pid of the process you want to send a message to\n");
+            scanf("%d", &pid_input);
+            if(kill(pid_input) == -1) {
+                printf("failure\n");
+            }
+            else {
+                printf("succes\n");
+            }
+            // Need to put process into waiting reply queue
+            printf("scheduling info\n");
+            break;
+    } 
+
 }
