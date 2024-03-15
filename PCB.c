@@ -269,7 +269,7 @@ static void checkInput() {
                 printf("failure\n");
             }
             else {
-                printf("succes\n");
+                printf("success\n");
             }
             break;
         case 'E':
@@ -286,7 +286,7 @@ static void checkInput() {
                 printf("failure\n");
             }
             else {
-                printf("succes\n");
+                printf("success\n");
             }
             // Need to put process into waiting reply queue
             printf("scheduling info\n");
@@ -303,7 +303,7 @@ static void checkInput() {
                 printf("failure\n");
             }
             else {
-                printf("succes\n");
+                printf("success\n");
             }
             break;
         case 'N':
@@ -314,7 +314,7 @@ static void checkInput() {
                 printf("failure\n");
             }
             else {
-                printf("succes\n");
+                printf("success\n");
             }
             break;
         case 'P':
@@ -324,7 +324,7 @@ static void checkInput() {
                 printf("failure\n");
             }
             else {
-                printf("succes\n");
+                printf("success\n");
             }
             break;
         case 'V':
@@ -334,7 +334,7 @@ static void checkInput() {
                 printf("failure\n");
             }
             else {
-                printf("succes\n");
+                printf("success\n");
             }
             break;
         case 'I':
