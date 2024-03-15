@@ -109,4 +109,8 @@ static void traverseList(List * pList);
 
 static PCB* nextProcess();
 
+// Search the relevant queues for the given pid
+static PCB *findProcess(int pid);
+
+
 #endif

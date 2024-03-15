@@ -80,37 +80,8 @@ int fork() {
 // NOTE: MAY WANT TO DO MORE TESTING ON FREEPROCESS
 int kill(int pid) {
 
-    PCB *toKill = NULL;
-    
-    toKill = List_search(ready_lists[0], pComparator, &pid);
-    if (toKill != NULL) {
-        freeProcess(toKill);
-        printf("Process %i killed\n", pid);
-        return 1;
-    } 
+    PCB *toKill = findProcess(pid);
 
-    toKill = List_search(ready_lists[1], pComparator, &pid);
-    if (toKill != NULL) {
-        freeProcess(toKill);
-        printf("Process %i killed\n", pid);
-        return 1;
-    }
-
-    toKill = List_search(ready_lists[2], pComparator, &pid);
-    if (toKill != NULL) {
-        freeProcess(toKill);
-        printf("Process %i killed\n", pid);
-        return 1;
-    }
-
-    toKill = List_search(waiting_lists[0], pComparator, &pid);
-    if (toKill != NULL) {
-        freeProcess(toKill);
-        printf("Process %i killed\n", pid);
-        return 1;
-    }
-
-    toKill = List_search(waiting_lists[1], pComparator, &pid);
     if (toKill != NULL) {
         freeProcess(toKill);
         printf("Process %i killed\n", pid);
@@ -204,6 +175,24 @@ int sem_V(int sem_id) {
 // Dump complete state information of process to screen.
 void procinfo(int pid) {
 
+    PCB *temp = findProcess(pid);
+
+    if (temp != NULL) {
+        printf("---Process Information---\n");
+        printf("Process ID:         %i\n", temp->pid);
+        printf("Process Priority:   %i\n", temp->priority);
+        printf("Process State:      ");
+        if (temp->state == RUNNING) {
+            printf("RUNNING\n");
+        } else if (temp->state == READY) {
+            printf("READY\n");
+        } else {
+            printf("BLOCKED\n");
+        }
+    }
+    else {
+        printf("Error: Process not found\n");
+    }
 }
 
 // Display all process queues and their contents
@@ -406,4 +395,38 @@ static PCB* nextProcess() {
     else {
         return NULL;
     }
+}
+
+// Search the relevant queues for the given pid
+static PCB *findProcess(int pid) {
+
+    PCB *temp = NULL;
+    
+    temp = List_search(ready_lists[0], pComparator, &pid);
+    if (temp != NULL) {
+        return temp;
+    } 
+
+    temp = List_search(ready_lists[1], pComparator, &pid);
+    if (temp != NULL) {
+        return temp;
+    }
+
+    temp = List_search(ready_lists[2], pComparator, &pid);
+    if (temp != NULL) {
+        return temp;
+    }
+
+    temp = List_search(waiting_lists[0], pComparator, &pid);
+    if (temp != NULL) {
+        return temp;
+    }
+
+    temp = List_search(waiting_lists[1], pComparator, &pid);
+    if (temp != NULL) {
+        return temp;
+    }
+
+    // If we reach this line, process with the given pid was not found
+    return NULL;
 }
