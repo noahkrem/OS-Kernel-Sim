@@ -131,23 +131,20 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * wait
     waiting_lists[0] = waitingSend;
     waiting_lists[1] = waitingReceive;
 
-    while(1) {
-        while(readyListEmpty) {
-            checkInput();
-        }
+    while(CURRENT == NULL && readyListEmpty()) {
+        checkInput();
     }
 }
 
 void checkInput() {
     char input;
-    int pid_input;
+    int int_input;
     scanf("%c", &input);
     switch (input) {
         case 'C':
-            int priority;
             printf("Please enter a priority number for the process (0 = high, 1 = norm, 2 = low)\n");
-            scanf("%d", &priority);
-            if(create(priority) == -1) {
+            scanf("%d", &int_input);
+            if(create(int_input) == -1) {
                 printf("failure\n");
             }
             else {
@@ -164,8 +161,8 @@ void checkInput() {
             break;
         case 'K':
             printf("Please enter the pid of the process you want to delete\n");
-            scanf("%d", &pid_input);
-            if(kill(pid_input) == -1) {
+            scanf("%d", &int_input);
+            if(kill(int_input) == -1) {
                 printf("failure\n");
             }
             else {
@@ -182,8 +179,8 @@ void checkInput() {
             break;
         case 'S':
             printf("Please enter the pid of the process you want to send a message to\n");
-            scanf("%d", &pid_input);
-            if(kill(pid_input) == -1) {
+            scanf("%d", &int_input);
+            if(kill(int_input) == -1) {
                 printf("failure\n");
             }
             else {
@@ -192,6 +189,59 @@ void checkInput() {
             // Need to put process into waiting reply queue
             printf("scheduling info\n");
             break;
+        case 'R':
+            receive();
+            // Put into waiting queue
+            break;
+        case 'Y':
+            printf("Please enter the pid to reply to\n");
+            scanf("%d", &int_input);
+            // unblock sender
+            if(reply(int_input, CURRENT->reply_msg) == -1) {
+                printf("failure\n");
+            }
+            else {
+                printf("succes\n");
+            }
+            break;
+        case 'N':
+            printf("Pleae enter the semaphore ID of the new semaphore\n");
+            scanf("%d", &int_input);
+            if(new_Sem(int_input) == -1) {
+                printf("failure\n");
+            }
+            else {
+                printf("succes\n");
+            }
+            break;
+        case 'P':
+            printf("Pleae enter the ID of the semaphore\n");
+            scanf("%d", &int_input);
+            if(sem_P(int_input) == -1) {
+                printf("failure\n");
+            }
+            else {
+                printf("succes\n");
+            }
+            break;
+        case 'V':
+            printf("Pleae enter the ID of the semaphore\n");
+            scanf("%d", &int_input);
+            if(sem_V(int_input) == -1) {
+                printf("failure\n");
+            }
+            else {
+                printf("succes\n");
+            }
+            break;
+        case 'I':
+            printf("Please enter the pid of the process\n");
+            scanf("%d", &int_input);
+            procinfo(int_input);
+        case 'T':
+            totalinfo();
+        default:
+            printf("Error: invalid input");
     } 
 
     bool readyListEmpty(){
