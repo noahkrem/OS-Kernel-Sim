@@ -520,6 +520,9 @@ void List_free(List* pList, FREE_FN pItemFreeFn) {
 typedef bool (*COMPARATOR_FN)(void* pItem, void* pComparisonArg);
 void* List_search(List* pList, COMPARATOR_FN pComparator, void* pComparisonArg) {
 
+    // For our purposes, it works better for us to start at the beginning of the list by default
+    List_first(pList);
+
     if (pList->current == NULL && pList->oob == LIST_OOB_END)
         return NULL;
 

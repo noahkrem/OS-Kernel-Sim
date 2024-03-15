@@ -100,6 +100,9 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * wait
 static void checkInput();
 
 // Search a list for a specific pid
-static bool pComparator(void * pList, void * pComparisonArg);
+static bool pComparator(void * process, void * pComparisonArg);
+
+// Free a process control block
+static void freeProcess(PCB *pList);
 
 #endif
