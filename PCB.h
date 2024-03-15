@@ -96,6 +96,10 @@ bool readyListEmpty();
 // Initialize all lists
 void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * waitingSend, List * waitingReceive);
 
-void checkInput();
+// Take input from the keyboard
+static void checkInput();
+
+// Search a list for a specific pid
+static bool pComparator(void * pList, void * pComparisonArg);
 
 #endif

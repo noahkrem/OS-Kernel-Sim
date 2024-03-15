@@ -168,7 +168,7 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * wait
     }
 }
 
-void checkInput() {
+static void checkInput() {
     char input;
     int int_input;
     scanf("%c", &input);
@@ -276,4 +276,10 @@ void checkInput() {
         default:
             printf("Error: invalid input");
     } 
+
+}
+
+// Search a list for a specific pid
+static bool pComparator(void * pList, void * pComparisonArg) {
+
 }
