@@ -89,7 +89,28 @@ void exit_proc() {
 // Time quantum of the running process expires.
 // Reports: Action taken (process scheduling information).
 void quantum() {
+    if(CURRENT == NULL) {
+        return;
+    }
+    printf("Process %d's time quantum has expired\n", CURRENT->pid);
+    PCB* temp = CURRENT;
+    CURRENT = nextProcess();
+    CURRENT->status = RUNNING;
+    temp->status = READY;
+    List_append(ready_lists[temp->priority], temp);
 
+    printf("Current process is now: %d", CURRENT->pid);
+
+    printf("Highest Priority Processes: \n")
+    traverseList(ready_lists[0]);
+    printf("Normal Priority Processes: \n")
+    traverseList(ready_lists[1]);
+    printf("Loweset Priority Processes: \n")
+    traverseList(ready_lists[2]);
+
+
+
+    
 }
 
 // Send a message to another process, block until reply.
@@ -302,4 +323,27 @@ static void checkInput() {
 // Search a list for a specific pid
 static bool pComparator(void * pList, void * pComparisonArg) {
 
+}
+
+static void traverseList(List * pList) {
+    List_first(pList);
+    if(List_next(pList) != NULL) {
+        PCB *curr = (PCB*)List_curr(pList);
+        printf("PID: %d\n", curr->pid);
+    }
+}
+
+static PCB* nextProcess() {
+    if(List_count(ready_lists[0]) != 0) {
+        return dequeue(ready_lists[0]);
+    }
+    else if(List_count(ready_lists[1]) != 0) {
+        return dequeue(ready_lists[1]);
+    }
+    else if(List_count(ready_lists[2]) != 0) {
+        return dequeue(ready_lists[2]);
+    }
+    else {
+        return NULL;
+    }
 }
