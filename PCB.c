@@ -1,6 +1,7 @@
 
 #include "PCB.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 static PCB* CURRENT = NULL;
 static unsigned int PID_CURR = 0;
@@ -11,6 +12,7 @@ static List * waiting_lists[NUM_WAITING_LIST];
 
 // Create a process and put it on the appropriate ready queue.
 // Reports: success or failure, the pid of created process on success.
+// NOTE: MAY WANT TO DO EXTRA ERROR CHECKING FOR LIST APPEND
 int create(int priority) {
 
     // Check that the given priority is valid
@@ -19,14 +21,35 @@ int create(int priority) {
     }
 
     PCB *newPCB = malloc(sizeof(PCB));
+    // If allocation fails
+    if (newPCB == NULL) {
+        return -1;
+    }
+
+    // Set member variables
     newPCB->pid = PID_CURR;
     PID_CURR++;
     newPCB->priority = priority;
 
-    if (readyListEmpty()) {
-
+    // If there are no processes currently running
+    if (CURRENT == NULL) {
+        newPCB->state = RUNNING;
+        CURRENT = newPCB;
+    }
+    // If the currently running process is lower priority than the new process
+    else if (CURRENT->priority > newPCB->priority) {
+        newPCB->state = RUNNING;
+        List_append(ready_lists[CURRENT->priority], CURRENT);
+        CURRENT = newPCB;
+    }
+    // If the currently running process is higher priority than the new process
+    else {
+        newPCB->state = READY;
+        List_append(ready_lists[newPCB->priority], newPCB);
     }
 
+    // Return pid of the created process
+    return newPCB->pid;
 }
 
 // Copy the currently running process and put it on the ready Q corresponding to the
