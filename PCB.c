@@ -6,6 +6,7 @@
 
 static PCB* CURRENT = NULL;
 static unsigned int PID_CURR = 0;
+static bool initMade = false;
 
 static sem_t sem_array[NUM_SEMAPHORE]; 
 static List * ready_lists[NUM_READY_LIST];      // 0 - high priority, 1 - normal priority, 2 - low priority
@@ -17,7 +18,7 @@ static List * waiting_lists[NUM_WAITING_LIST];  // 0 - waiting on send, 1 - wait
 int create(int priority) {
 
     // Check that the given priority is valid
-    if (priority < 0 || priority > 2) {
+    if (priority < 0 || priority > 2 && initMade == true) {
         return -1;
     }
 
@@ -37,13 +38,12 @@ int create(int priority) {
         newPCB->state = RUNNING;
         CURRENT = newPCB;
     }
-    // If the currently running process is lower priority than the new process
-    else if (CURRENT->priority > newPCB->priority || CURRENT->pid == 0) {
+    // If the currently running process is the init process
+    else if (CURRENT->priority == 3) {
         newPCB->state = RUNNING;
         List_append(ready_lists[CURRENT->priority], CURRENT);
         CURRENT = newPCB;
     }
-    // If the currently running process is higher priority than the new process
     else {
         newPCB->state = READY;
         List_append(ready_lists[newPCB->priority], newPCB);
@@ -136,10 +136,6 @@ void quantum() {
     printf("Loweset Priority Processes: \n");
     traverseList(ready_lists[2]);
     printf("\n");
-
-
-
-    
 }
 
 // Send a message to another process, block until reply.
@@ -259,16 +255,18 @@ bool readyListEmpty() {
 }
 
 // Initialize all lists
-void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * waitingSend, List * waitingReceive) {
+void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * readyInit, List * waitingSend, List * waitingReceive) {
 
     ready_lists[0] = readyTop;
     ready_lists[1] = readyNorm;
     ready_lists[2] = readyLow;
+    ready_lists[3] = readyInit;
 
     waiting_lists[0] = waitingSend;
     waiting_lists[1] = waitingReceive;
 
-    create(2);
+    create(3);
+    initMade = true;
 
     while(1) {
         checkInput();
