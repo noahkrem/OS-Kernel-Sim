@@ -94,7 +94,7 @@ static void* dequeue(List * list);
 bool readyListEmpty();
 
 // Initialize all lists
-void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * waitingSend, List * waitingReceive);
+void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * readyInit, List * waitingSend, List * waitingReceive);
 
 // Take input from the keyboard
 static void checkInput();

@@ -18,7 +18,7 @@ static List * waiting_lists[NUM_WAITING_LIST];  // 0 - waiting on send, 1 - wait
 int create(int priority) {
 
     // Check that the given priority is valid
-    if (priority < 0 || priority > 2 && initMade == false) {
+    if (priority < 0 || priority > 2 && initMade == true) {
         return -1;
     }
 
@@ -38,13 +38,12 @@ int create(int priority) {
         newPCB->state = RUNNING;
         CURRENT = newPCB;
     }
-    // If the currently running process is lower priority than the new process
-    else if (CURRENT->priority > newPCB->priority || CURRENT->pid == 0) {
+    // If the currently running process is the init process
+    else if (CURRENT->priority == 3) {
         newPCB->state = RUNNING;
         List_append(ready_lists[CURRENT->priority], CURRENT);
         CURRENT = newPCB;
     }
-    // If the currently running process is higher priority than the new process
     else {
         newPCB->state = READY;
         List_append(ready_lists[newPCB->priority], newPCB);
@@ -242,11 +241,12 @@ bool readyListEmpty() {
 }
 
 // Initialize all lists
-void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * waitingSend, List * waitingReceive) {
+void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * readyInit, List * waitingSend, List * waitingReceive) {
 
     ready_lists[0] = readyTop;
     ready_lists[1] = readyNorm;
     ready_lists[2] = readyLow;
+    ready_lists[3] = readyInit;
 
     waiting_lists[0] = waitingSend;
     waiting_lists[1] = waitingReceive;
