@@ -113,7 +113,7 @@ static PCB* nextProcess();
 static PCB *findProcess(int pid);
 
 // Helper function to print process information to the screen
-void procinfo_helper(int pid, int priority, enum ProcState state);
+void procinfo_helper(PCB *process);
 
 
 #endif
