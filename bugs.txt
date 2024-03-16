@@ -1,0 +1,4 @@
+- kill() when killing current process
+    - Output is not great right now
+- Semaphores
+- Improve output of checkInput()
