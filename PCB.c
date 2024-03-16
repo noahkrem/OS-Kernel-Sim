@@ -188,6 +188,8 @@ int sem_V(int sem_id) {
 // Dump complete state information of process to screen.
 void procinfo(int pid) {
 
+    printf("---PROCESS INFO---\n");
+
     PCB *temp = NULL;
 
     // Either the process is the currently running process, or it is stored in a list
@@ -199,17 +201,7 @@ void procinfo(int pid) {
     }
 
     if (temp != NULL) {
-        printf("---Process Information---\n");
-        printf("Process ID:         %i\n", temp->pid);
-        printf("Process Priority:   %i\n", temp->priority);
-        printf("Process State:      ");
-        if (temp->state == RUNNING) {
-            printf("RUNNING\n");
-        } else if (temp->state == READY) {
-            printf("READY\n");
-        } else {
-            printf("BLOCKED\n");
-        }
+        procinfo_helper(temp);
     }
     else {
         printf("Error: Process not found\n");
@@ -219,6 +211,21 @@ void procinfo(int pid) {
 // Display all process queues and their contents
 void totalinfo() {
     
+    printf("\n\n---TOTAL INFO---\n");
+
+    // Display the ready lists
+    for (int i = 0; i <= 2; i++) {
+        List_first(ready_lists[i]);
+        printf("--Ready List %i:\n", i);
+        while (ready_lists[i]->current != NULL) {
+            // Print process info
+            PCB *processPointer = ready_lists[i]->current->item;
+            procinfo_helper(processPointer);
+            // Advance
+            ready_lists[i]->current = ready_lists[i]->current->next;
+        }
+    }
+
 }
 
 
@@ -369,26 +376,12 @@ static void checkInput() {
             printf("Please enter the pid of the process\n");
             scanf("%d", &int_input);
             procinfo(int_input);
+            break;
         case 'T':
             totalinfo();
             break;
     } 
 
-}
-
-// Search a list for a specific pid
-// NOTE: NOT ENTIRELY SURE IF THE COMPARISON WILL WORK
-static bool pComparator(void * process, void * pComparisonArg) {
-
-    PCB *processPointer = (PCB *)process;
-    unsigned int intPointer = (uintptr_t)pComparisonArg;
-    printf("comparison int: %i\n", intPointer);
-
-    if (processPointer->pid == intPointer) {
-        return true;
-    }
-    
-    return false;
 }
 
 // Free a process control block
@@ -462,4 +455,19 @@ static PCB* findProcess(int pid) {
 
     // If we reach this line, process with the given pid was not found
     return NULL;
+}
+
+// Helper function to print process information to the screen
+void procinfo_helper(PCB *process) {
+
+    printf("Process ID:         %i\n", process->pid);
+    printf("Process Priority:   %i\n", process->priority);
+    printf("Process State:      ");
+    if (process->state == RUNNING) {
+        printf("RUNNING\n");
+    } else if (process->state == READY) {
+        printf("READY\n");
+    } else {
+        printf("BLOCKED\n");
+    }
 }
