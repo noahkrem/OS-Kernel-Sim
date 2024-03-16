@@ -136,14 +136,13 @@ void quantum() {
 // Reports: success or failure, scheduling information, and reply source and text (once
 //  reply arrives).
 int send(int pid, char *msg) {
-    if(!removeReady(CURRENT)){
-        return -1;
-    }
     PCB* target = findProcess(pid);
     if(target->proc_message == NULL) {
         target->proc_message = msg;
         CURRENT->state = BLOCKED;
         List_append(waiting_lists[0], CURRENT);
+
+        CURRENT = nextProcess();
         
         return 1;
     }
@@ -481,24 +480,5 @@ void procinfo_helper(PCB *process) {
         printf("READY\n");
     } else {
         printf("BLOCKED\n");
-    }
-}
-
-bool removeReady(PCB* target) {
-    if(target->state == RUNNING) {
-        return true;
-    }
-    else {
-        List_first(ready_lists[target->priority]);
-        while(List_curr(ready_lists[target->priority]) != target || List_curr(ready_lists[target->priority]) != List_last(ready_lists[target->priority])) {
-            List_next(ready_lists[target->priority]);
-        }
-    }
-    if(List_curr(ready_lists[target->priority]) == target) {
-        List_remove(ready_lists[target->priority]);
-        return true;
-    }
-    else {
-        return false;
     }
 }

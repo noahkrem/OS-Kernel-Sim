@@ -114,6 +114,4 @@ static PCB *findProcess(int pid);
 // Helper function to print process information to the screen
 void procinfo_helper(PCB *process);
 
-bool removeReady(PCB* target);
-
 #endif
