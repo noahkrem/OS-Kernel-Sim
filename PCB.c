@@ -141,6 +141,7 @@ int send(int pid, char *msg) {
     if(target->proc_message == NULL) {
         target->proc_message = msg;
         CURRENT->state = BLOCKED;
+        CURRENT->waitState = 0;
         List_append(waiting_lists[0], CURRENT);
         // STILL NEEDS SCHEDULING INFO
         CURRENT = nextProcess();
@@ -158,6 +159,7 @@ int send(int pid, char *msg) {
 void receive() {
     if(CURRENT->proc_message == NULL) {
         CURRENT->state = BLOCKED;
+        CURRENT->waitState = 1;
         List_append(waiting_lists[1], CURRENT);
         // STILL NEEDS SCHEDULING INFO
         CURRENT = nextProcess();
