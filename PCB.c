@@ -9,8 +9,8 @@ static unsigned int PID_CURR = 0;
 static bool initMade = false;
 
 static sem_t sem_array[NUM_SEMAPHORE]; 
-static List * ready_lists[NUM_READY_LIST];
-static List * waiting_lists[NUM_WAITING_LIST];
+static List * ready_lists[NUM_READY_LIST];      // 0 - high priority, 1 - normal priority, 2 - low priority
+static List * waiting_lists[NUM_WAITING_LIST];  // 0 - waiting on send, 1 - waiting on receive
 
 // Create a process and put it on the appropriate ready queue.
 // Reports: success or failure, the pid of created process on success.
@@ -78,7 +78,7 @@ int fork() {
 
 // Kill the named process and remove it from the system.
 // Reports: Action taken as well as success or failure.
-// NOTE: MAY WANT TO DO MORE TESTING ON FREEPROCESS
+// NOTE: MAY WANT TO DO MORE TESTING ON FREEPROCESS, ALSO WANT TO SET THE HIGHEST PRIORITY READY PROCESS TO CURRENT
 int kill(int pid) {
 
     PCB *toKill = findProcess(pid);
@@ -427,37 +427,33 @@ static PCB* nextProcess() {
 // Search the relevant queues for the given pid
 static PCB* findProcess(int pid) {
 
-    PCB *temp = NULL;
-    
-    temp = List_search(ready_lists[0], pComparator, &pid);
-    if (temp != NULL) {
-        return temp;
-    } 
-    printf("Not in ready list 0...\n");
-
-    temp = List_search(ready_lists[1], pComparator, &pid);
-    if (temp != NULL) {
-        return temp;
+    // Search the ready lists
+    for (int i = 0; i <= 2; i++) {
+        List_first(ready_lists[i]);
+        while (ready_lists[i]->current != NULL) {
+            // Check for a match
+            PCB *processPointer = ready_lists[i]->current->item;
+            if (processPointer->pid == pid)
+                return processPointer;
+            // If no match, advance
+            ready_lists[i]->current = ready_lists[i]->current->next;
+        }
+        // printf("Match not found in ready list %i...\n", i);  // Testing
     }
-    printf("Not in ready list 1...\n");
 
-    temp = List_search(ready_lists[2], pComparator, &pid);
-    if (temp != NULL) {
-        return temp;
+    // Search the waiting lists
+    for (int i = 0; i <= 1; i++) {
+        List_first(waiting_lists[i]);
+        while (waiting_lists[i]->current != NULL) {
+            // Check for a match
+            PCB *processPointer = waiting_lists[i]->current->item;
+            if (processPointer->pid == pid)
+                return processPointer;
+            // If no match, advance
+            waiting_lists[i]->current = waiting_lists[i]->current->next;
+        }
+        // printf("Match not found in waiting list %i...\n", i);    // Testing
     }
-    printf("Not in ready list 2...\n");
-
-    temp = List_search(waiting_lists[0], pComparator, &pid);
-    if (temp != NULL) {
-        return temp;
-    }
-    printf("Not in waiting list 0...\n");
-
-    temp = List_search(waiting_lists[1], pComparator, &pid);
-    if (temp != NULL) {
-        return temp;
-    }
-    printf("Not in waiting list 1...\n");
 
     // If we reach this line, process with the given pid was not found
     return NULL;
