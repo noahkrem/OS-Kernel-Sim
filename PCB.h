@@ -21,8 +21,7 @@ struct PCB_s {
     int pid;
     int priority;
     enum ProcState state;
-    char *send_msg;
-    char *reply_msg;
+    char *proc_message;
 };
 
 typedef struct semaphore_t sem_t;
@@ -114,6 +113,5 @@ static PCB *findProcess(int pid);
 
 // Helper function to print process information to the screen
 void procinfo_helper(PCB *process);
-
 
 #endif
