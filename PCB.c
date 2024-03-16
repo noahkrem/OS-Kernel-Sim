@@ -6,6 +6,7 @@
 
 static PCB* CURRENT = NULL;
 static unsigned int PID_CURR = 0;
+static bool initMade = false;
 
 static sem_t sem_array[NUM_SEMAPHORE]; 
 static List * ready_lists[NUM_READY_LIST];
@@ -17,7 +18,7 @@ static List * waiting_lists[NUM_WAITING_LIST];
 int create(int priority) {
 
     // Check that the given priority is valid
-    if (priority < 0 || priority > 2) {
+    if (priority < 0 || priority > 2 && initMade == false) {
         return -1;
     }
 
@@ -136,10 +137,6 @@ void quantum() {
     printf("Loweset Priority Processes: \n");
     traverseList(ready_lists[2]);
     printf("\n");
-
-
-
-    
 }
 
 // Send a message to another process, block until reply.
@@ -254,7 +251,8 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * wait
     waiting_lists[0] = waitingSend;
     waiting_lists[1] = waitingReceive;
 
-    create(2);
+    create(3);
+    initMade = true;
 
     while(1) {
         checkInput();
