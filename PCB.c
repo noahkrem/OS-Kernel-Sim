@@ -261,6 +261,7 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * read
 
 static void checkInput() {
     char input;
+    char *msg;
     int int_input;
     int rv;
     scanf("%c", &input);
@@ -305,7 +306,9 @@ static void checkInput() {
         case 'S':
             printf("Please enter the pid of the process you want to send a message to\n");
             scanf("%d", &int_input);
-            if(kill(int_input) == -1) {
+            printf("Please enter the message you want to send:\n");
+            scanf("%s", msg);
+            if(send(int_input, msg) == -1) {
                 printf("failure\n");
             }
             else {
@@ -321,8 +324,10 @@ static void checkInput() {
         case 'Y':
             printf("Please enter the pid to reply to\n");
             scanf("%d", &int_input);
+            printf("Please enter your reply message:\n");
+            scanf("%s", msg);
             // unblock sender
-            if(reply(int_input, CURRENT->reply_msg) == -1) {
+            if(reply(int_input, msg) == -1) {
                 printf("failure\n");
             }
             else {
