@@ -81,9 +81,21 @@ int fork() {
 // NOTE: MAY WANT TO DO MORE TESTING ON FREEPROCESS, ALSO WANT TO SET THE HIGHEST PRIORITY READY PROCESS TO CURRENT
 int kill(int pid) {
 
-    PCB *toKill = findProcess(pid);
+    PCB *toKill = findProcess(pid); // Find the desired process. The list's "current" node is to be removed now
 
     if (toKill != NULL) {
+        // If the process is currently running
+        if (toKill->state == RUNNING) {
+            quantum();
+            freeProcess(toKill);
+        // If the process is on a ready queue 
+        } else if (toKill->state == READY) {
+            List_remove(ready_lists[toKill->priority]);
+            freeProcess(toKill);
+        // If the process is on a waiting queue
+        } else {
+        }
+        List_remove(toKill->priority);
         freeProcess(toKill);
         printf("Process %i killed\n", pid);
         return 1;
@@ -97,6 +109,9 @@ int kill(int pid) {
 // Reports: Process scheduling information (which process now gets control of the cpu).
 void exit_proc() {
 
+    if (CURRENT != NULL) {
+        kill(CURRENT->pid);
+    }
 }
 
 // Time quantum of the running process expires.
@@ -106,7 +121,6 @@ void quantum() {
     if(CURRENT == NULL) {
         return;
     }
-
 
     PCB* temp = CURRENT;
     CURRENT = nextProcess();
@@ -247,6 +261,19 @@ void totalinfo() {
             procinfo_helper(processPointer);
             // Advance
             ready_lists[i]->current = ready_lists[i]->current->next;
+        }
+    }
+
+    // Display the waiting lists
+    for (int i = 0; i <= 1; i++) {
+        List_first(waiting_lists[i]);
+        printf("--Waiting List %i:\n", i);
+        while (waiting_lists[i]->current != NULL) {
+            // Print process info
+            PCB *processPointer = waiting_lists[i]->current->item;
+            procinfo_helper(processPointer);
+            // Advance
+            waiting_lists[i]->current = waiting_lists[i]->current->next;
         }
     }
 
