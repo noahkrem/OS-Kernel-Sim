@@ -159,6 +159,11 @@ void quantum() {
         List_append(ready_lists[temp->priority], temp);
     }
 
+    if(CURRENT->proc_message != NULL) {
+        printf("\nReceiving Message: %s\n", CURRENT->proc_message);
+        CURRENT->proc_message = NULL;
+    }
+
     printf("Expired process: \n");
     procinfo_helper(temp);
 
@@ -184,6 +189,11 @@ int send(int pid, char *msg) {
         // STILL NEEDS SCHEDULING INFO
         CURRENT = nextProcess();
         CURRENT->state = RUNNING;
+
+        if(CURRENT->proc_message != NULL) {
+            printf("\nReceiving Message: %s\n", CURRENT->proc_message);
+            CURRENT->proc_message = NULL;
+        }
         
         return 1;
     }
@@ -202,6 +212,11 @@ void receive() {
         // STILL NEEDS SCHEDULING INFO
         CURRENT = nextProcess();
         CURRENT->state = RUNNING;
+
+        if(CURRENT->proc_message != NULL) {
+            printf("\nReceiving Message: %s\n", CURRENT->proc_message);
+            CURRENT->proc_message = NULL;
+        }
         
         return;
     }
@@ -343,7 +358,7 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * read
 
 static void checkInput() {
     char input;
-    char *msg;
+    char msg[256];
     int int_input;
     int rv;
     scanf("%c", &input);
