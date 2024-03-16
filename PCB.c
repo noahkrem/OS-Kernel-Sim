@@ -80,9 +80,22 @@ int fork() {
 // NOTE: MAY WANT TO DO MORE TESTING ON FREEPROCESS, ALSO WANT TO SET THE HIGHEST PRIORITY READY PROCESS TO CURRENT
 int kill(int pid) {
 
-    PCB *toKill = findProcess(pid);
+    PCB *toKill = findProcess(pid); // Find the desired process. The list's "current" node is to be removed now
 
     if (toKill != NULL) {
+        // If the process is currently running
+        if (toKill->state == RUNNING) {
+            quantum();
+            freeProcess(toKill);
+        // If the process is on a ready queue 
+        } else if (toKill->state == READY) {
+            List_remove(ready_lists[toKill->priority]);
+            freeProcess(toKill);
+        // If the process is on a waiting queue
+        } else {
+            // CODE HERE
+        }
+        List_remove(toKill->priority)
         freeProcess(toKill);
         printf("Process %i killed\n", pid);
         return 1;
