@@ -104,13 +104,8 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * read
 // Take input from the keyboard
 static void checkInput();
 
-// Search a list for a specific pid
-static bool pComparator(void * process, void * pComparisonArg);
-
 // Free a process control block
 static void freeProcess(PCB *pList);
-
-static void traverseList(List * pList);
 
 static PCB* nextProcess();
 
