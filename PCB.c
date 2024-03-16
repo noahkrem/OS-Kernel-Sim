@@ -94,9 +94,8 @@ int kill(int pid) {
             freeProcess(toKill);
         // If the process is on a waiting queue
         } else {
-            // CODE HERE
         }
-        List_remove(toKill->priority)
+        List_remove(toKill->priority);
         freeProcess(toKill);
         printf("Process %i killed\n", pid);
         return 1;
