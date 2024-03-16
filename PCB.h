@@ -20,6 +20,8 @@ typedef struct PCB_s PCB;
 struct PCB_s {
     int pid;
     int priority;
+    // waitState is 2 if its unblocked, 1 if its waiting for a send, 0 if its waiting for a reply
+    int waitState;
     enum ProcState state;
     char *proc_message;
 };

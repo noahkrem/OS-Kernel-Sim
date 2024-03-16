@@ -32,6 +32,7 @@ int create(int priority) {
     newPCB->pid = PID_CURR;
     PID_CURR++;
     newPCB->priority = priority;
+    newPCB->waitState = 2;
 
     // If there are no processes currently running
     if (CURRENT == NULL) {
@@ -156,8 +157,9 @@ int send(int pid, char *msg) {
         target->proc_message = msg;
         CURRENT->state = BLOCKED;
         List_append(waiting_lists[0], CURRENT);
-
+        // STILL NEEDS SCHEDULING INFO
         CURRENT = nextProcess();
+        CURRENT->state = RUNNING;
         
         return 1;
     }
@@ -169,7 +171,15 @@ int send(int pid, char *msg) {
 // Receive a message, block until one arrives
 // Reports: Scheduling information, message text, source of message.
 void receive() {
-
+    if(CURRENT->proc_message == NULL) {
+        CURRENT->state = BLOCKED;
+        List_append(waiting_lists[1], CURRENT);
+        // STILL NEEDS SCHEDULING INFO
+        CURRENT = nextProcess();
+        CURRENT->state = RUNNING;
+        
+        return;
+    }
 }
 
 // Unblocks sender and delivers reply.
