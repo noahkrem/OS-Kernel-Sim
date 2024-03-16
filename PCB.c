@@ -211,7 +211,13 @@ void procinfo(int pid) {
 // Display all process queues and their contents
 void totalinfo() {
     
-    printf("\n\n---TOTAL INFO---\n");
+    printf("---TOTAL INFO---\n");
+
+    // Display the currently running process
+    if (CURRENT != NULL) {
+        printf("--Current Process:\n");
+        procinfo_helper(CURRENT);
+    }
 
     // Display the ready lists
     for (int i = 0; i <= 2; i++) {
@@ -455,9 +461,9 @@ static PCB* findProcess(int pid) {
 // Helper function to print process information to the screen
 void procinfo_helper(PCB *process) {
 
-    printf("Process ID:         %i\n", process->pid);
-    printf("Process Priority:   %i\n", process->priority);
-    printf("Process State:      ");
+    printf("    Process ID:         %i\n", process->pid);
+    printf("    Process Priority:   %i\n", process->priority);
+    printf("    Process State:      ");
     if (process->state == RUNNING) {
         printf("RUNNING\n");
     } else if (process->state == READY) {
