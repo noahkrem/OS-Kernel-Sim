@@ -59,21 +59,23 @@ int create(int priority) {
 // Reports: Success or failure, the pid of the resulting process on success.
 // Returns -1 on failure, the pid on success
 int fork() {
-    if(CURRENT == NULL || CURRENT->pid == 0) {
+    
+    if (CURRENT == NULL || CURRENT->pid == 0) {
         return -1;
     }
+
+    // Create the new process
     PCB *newPCB = malloc(sizeof(PCB));
     newPCB->pid = PID_CURR;
     PID_CURR++;
     newPCB->priority = CURRENT->priority;
+    newPCB->state = READY;
 
-   if(List_append(ready_lists[newPCB->priority], newPCB) == -1) {
-        PID_CURR--;
-        free(newPCB);
-        return -1;   
-   }
+    // Enqueue the new process
+    List_append(ready_lists[newPCB->priority], newPCB);
 
-   return newPCB->pid;  
+    printf("Forked Process: %i\n", newPCB->pid);
+    return newPCB->pid;  
 }
 
 // Kill the named process and remove it from the system.
@@ -380,7 +382,6 @@ static void checkInput() {
             }
             else {
                 printf("success\n");
-                printf("PID: %d\n", rv);
             }
             break;
         case 'K':
@@ -486,19 +487,6 @@ static void freeProcess(PCB *process) {
     process = NULL;
 }
 
-static void traverseList(List * pList) {
-    if(List_count(pList) == 0) {
-        return;
-    }
-    List_first(pList);
-    PCB *curr = (PCB*)List_curr(pList);
-    printf("PID: %d\n", curr->pid);
-    if(List_next(pList) != NULL) {
-        PCB *curr = (PCB*)List_curr(pList);
-        printf("PID: %d\n", curr->pid);
-    }
-}
-
 static PCB* nextProcess() {
     if(List_count(ready_lists[0]) != 0) {
         return dequeue(ready_lists[0]);
@@ -563,4 +551,5 @@ void procinfo_helper(PCB *process) {
     } else {
         printf("BLOCKED\n");
     }
+    printf("\n");
 }
