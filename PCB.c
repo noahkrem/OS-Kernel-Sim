@@ -101,11 +101,12 @@ void exit_proc() {
 // Time quantum of the running process expires.
 // Reports: Action taken (process scheduling information).
 void quantum() {
+    
     if(CURRENT == NULL) {
         return;
     }
-    printf("\n");
-    printf("Process %d's time quantum has expired\n", CURRENT->pid);
+
+
     PCB* temp = CURRENT;
     CURRENT = nextProcess();
 
@@ -124,18 +125,11 @@ void quantum() {
         List_append(ready_lists[temp->priority], temp);
     }
 
-    printf("Current process is now: %d\n", CURRENT->pid);
-    printf("\n");
+    printf("Expired process: \n");
+    procinfo_helper(temp);
 
-    printf("Highest Priority Processes: \n");
-    traverseList(ready_lists[0]);
-    printf("\n");
-    printf("Normal Priority Processes: \n");
-    traverseList(ready_lists[1]);
-    printf("\n");
-    printf("Loweset Priority Processes: \n");
-    traverseList(ready_lists[2]);
-    printf("\n");
+    printf("New current process: \n");
+    procinfo_helper(CURRENT);
 }
 
 // Send a message to another process, block until reply.
