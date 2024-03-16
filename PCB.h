@@ -112,5 +112,8 @@ static PCB* nextProcess();
 // Search the relevant queues for the given pid
 static PCB *findProcess(int pid);
 
+// Helper function to print process information to the screen
+void procinfo_helper(int pid, int priority, enum ProcState state);
+
 
 #endif

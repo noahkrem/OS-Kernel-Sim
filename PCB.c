@@ -223,6 +223,20 @@ void procinfo(int pid) {
 // Display all process queues and their contents
 void totalinfo() {
     
+    // Display the ready lists
+    for (int i = 0; i <= 2; i++) {
+        List_first(ready_lists[i]);
+        while (ready_lists[i]->current != NULL) {
+            // Check for a match
+            PCB *processPointer = ready_lists[i]->current->item;
+            if (processPointer->pid == pid)
+                procinfo(pid);
+            // If no match, advance
+            ready_lists[i]->current = ready_lists[i]->current->next;
+        }
+        // printf("Match not found in ready list %i...\n", i);  // Testing
+    }
+
 }
 
 
@@ -373,21 +387,6 @@ static void checkInput() {
 
 }
 
-// Search a list for a specific pid
-// NOTE: NOT ENTIRELY SURE IF THE COMPARISON WILL WORK
-static bool pComparator(void * process, void * pComparisonArg) {
-
-    PCB *processPointer = (PCB *)process;
-    unsigned int intPointer = (uintptr_t)pComparisonArg;
-    printf("comparison int: %i\n", intPointer);
-
-    if (processPointer->pid == intPointer) {
-        return true;
-    }
-    
-    return false;
-}
-
 // Free a process control block
 static void freeProcess(PCB *process) {
     
@@ -459,4 +458,10 @@ static PCB* findProcess(int pid) {
 
     // If we reach this line, process with the given pid was not found
     return NULL;
+}
+
+// Helper function to print process information to the screen
+void procinfo_helper(int pid, int priority, enum ProcState state) {
+
+    
 }
