@@ -78,10 +78,22 @@ int fork() {
 
 // Kill the named process and remove it from the system.
 // Reports: Action taken as well as success or failure.
-// NOTE: MAY WANT TO DO MORE TESTING ON FREEPROCESS, ALSO WANT TO SET THE HIGHEST PRIORITY READY PROCESS TO CURRENT
+// NOTE: MAY WANT TO DO MORE TESTING ON FREEPROCESS
 int kill(int pid) {
 
-    PCB *toKill = findProcess(pid); // Find the desired process. The list's "current" node is to be removed now
+    PCB *toKill = NULL;
+
+    if (CURRENT != NULL) {
+        if (CURRENT->pid == pid) {
+            toKill = CURRENT;
+            quantum();
+            List_remove(ready_lists[toKill->priority]);
+            freeProcess(toKill);
+            return 1;
+        }
+    }
+
+    toKill = findProcess(pid); // Find the desired process. The list's "current" node is to be removed now
 
     if (toKill != NULL) {
         // If the process is currently running
@@ -94,9 +106,16 @@ int kill(int pid) {
             freeProcess(toKill);
         // If the process is on a waiting queue
         } else {
+            // If the process is waiting on a send
+            if (toKill->waitState == WAITING_SEND) {
+                List_remove(waiting_lists[0]);
+                freeProcess(toKill);
+            }
+            if (toKill->waitState == WAITING_RECEIVE) {
+                List_remove(waiting_lists[1]);
+                freeProcess(toKill);
+            }
         }
-        List_remove(toKill->priority);
-        freeProcess(toKill);
         printf("Process %i killed\n", pid);
         return 1;
     }
@@ -345,8 +364,11 @@ static void checkInput() {
         case 'K':
             printf("Please enter the pid of the process you want to delete\n");
             scanf("%d", &int_input);
-            if(kill(int_input) == -1) {
-                printf("failure\n");
+            if (int_input > PID_CURR || int_input < 1) {
+                printf("Failure: Invalid input\n");
+            } 
+            else if (kill(int_input) == -1) {
+                printf("Failure: Could not delete process\n");
             }
             else {
                 printf("success\n");
@@ -470,7 +492,8 @@ static PCB* nextProcess() {
     }
 }
 
-// Search the relevant queues for the given pid
+// Search the relevant queues for the given pid.
+// The queue's current node will now be the desired process.
 static PCB* findProcess(int pid) {
 
     // Search the ready lists
