@@ -96,6 +96,9 @@ int kill(int pid) {
 // Reports: Process scheduling information (which process now gets control of the cpu).
 void exit_proc() {
 
+    if (CURRENT != NULL) {
+        kill(CURRENT->pid);
+    }
 }
 
 // Time quantum of the running process expires.
@@ -105,7 +108,6 @@ void quantum() {
     if(CURRENT == NULL) {
         return;
     }
-
 
     PCB* temp = CURRENT;
     CURRENT = nextProcess();
@@ -223,6 +225,19 @@ void totalinfo() {
             procinfo_helper(processPointer);
             // Advance
             ready_lists[i]->current = ready_lists[i]->current->next;
+        }
+    }
+
+    // Display the waiting lists
+    for (int i = 0; i <= 1; i++) {
+        List_first(waiting_lists[i]);
+        printf("--Waiting List %i:\n", i);
+        while (waiting_lists[i]->current != NULL) {
+            // Print process info
+            PCB *processPointer = waiting_lists[i]->current->item;
+            procinfo_helper(processPointer);
+            // Advance
+            waiting_lists[i]->current = waiting_lists[i]->current->next;
         }
     }
 
