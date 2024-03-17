@@ -28,7 +28,5 @@ int main(int argc, char *argv[]) {
 
     initProgram(ready_top, ready_norm, ready_low, ready_init, waiting_send, waiting_receive);
 
-    printf("\nskipped\n");
-
     return 0;    
 }

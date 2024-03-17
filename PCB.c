@@ -7,6 +7,7 @@
 static PCB* CURRENT = NULL;
 static unsigned int PID_CURR = 0;
 static bool initMade = false;
+static unsigned int SEM_NUM = 0;
 
 static sem_t sem_array[NUM_SEMAPHORE]; 
 static List * ready_lists[NUM_READY_LIST];      // 0 - high priority, 1 - normal priority, 2 - low priority
@@ -235,6 +236,22 @@ int reply(int pid, char *msg) {
 // Reports: Action taken as well as success or failure.
 int new_Sem(int sem_id, unsigned int init) {
 
+    // Check for valid semaphore ID
+    if (sem_id > 4 || sem_id < 0) {
+        return -1;
+    }
+    // Check that we have not created too many semaphores
+    if (SEM_NUM >= NUM_SEMAPHORE) {
+        return -1;
+    }
+    // Check that we have not already created a semaphore with the given ID
+    if (sem_array[sem_id].sem_value != -1) {
+        return -1;
+    }
+
+    sem_array[sem_id].sem_value = init;
+    sem_array[sem_id].pList = List_create();
+
 }
 
 // Execute the semaphore P operation on behalf of the running process. Assume semaphore 
@@ -349,6 +366,10 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * read
 
     waiting_lists[0] = waitingSend;
     waiting_lists[1] = waitingReceive;
+
+    for (int i = 0; i < 5; i++) {
+        sem_array[i].sem_value = -1;    // Set to one, to later check semaphore initialization
+    }
 
     create(3);
     initMade = true;

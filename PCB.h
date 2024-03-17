@@ -6,7 +6,6 @@
 
 
 #define NUM_SEMAPHORE 5
-#define NUM_PROCESSES 5
 #define NUM_READY_LIST 3
 #define NUM_WAITING_LIST 2
 
@@ -32,8 +31,8 @@ struct PCB_s {
 
 typedef struct semaphore_t sem_t;
 struct semaphore_t {
-    int sem_value;
-    List *pList; // Processes blocked on this semaphore
+    int sem_value; // Initialized to -1, to confirm whether or not the semaphore has been created yet
+    List *pList;        // Processes blocked on this semaphore
 };
 
 // Create a process and put it on the appropriate ready queue.
