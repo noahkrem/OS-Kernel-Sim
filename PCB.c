@@ -171,11 +171,6 @@ void quantum() {
         List_append(ready_lists[temp->priority], temp);
     }
 
-    if(CURRENT->proc_message != NULL) {
-        printf("\nReceiving Message: %s\n\n", CURRENT->proc_message);
-        CURRENT->proc_message = NULL;
-    }
-
     printf("Expired process: \n");
     procinfo_helper(temp);
 
@@ -224,11 +219,6 @@ int send(int pid, char *msg) {
 
         printf("New current process: \n");
         procinfo_helper(CURRENT);
-
-        if(CURRENT->proc_message != NULL) {
-            printf("\nReceiving Message: %s\n\n", CURRENT->proc_message);
-            CURRENT->proc_message = NULL;
-        }
         
         return 1;
     }
