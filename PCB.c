@@ -297,6 +297,8 @@ int sem_P(int sem_id) {
     if(sem_array[sem_id].sem_value < 0) {
         List_append(sem_array[sem_id].pList, CURRENT);
         CURRENT->state = BLOCKED;
+        CURRENT = nextProcess();
+        CURRENT->state = RUNNING;
     }
 }
 
@@ -307,6 +309,7 @@ int sem_V(int sem_id) {
     if(sem_array[sem_id].sem_value <= 0) {
         PCB* temp = (PCB *)dequeue(sem_array[sem_id].pList);
         temp->state = READY;
+        List_append(ready_lists[temp->priority], temp);
     }
 }
 
