@@ -177,20 +177,34 @@ void quantum() {
 // Reports: success or failure, scheduling information, and reply source and text (once
 //  reply arrives).
 int send(int pid, char *msg) {
+    // Look for the target
     PCB* target = findProcess(pid);
+
+    // Check if target can receive message
     if(target->proc_message == NULL) {
         target->proc_message = msg;
+
+        // Move the current process to waiting list
         CURRENT->state = BLOCKED;
         CURRENT->waitState = WAITING_RECEIVE;
         List_append(waiting_lists[0], CURRENT);
+
+        printf("Blocking process: \n");
+        procinfo_helper(CURRENT);
+
+        // If the target was waiting for a send, remove it from the list
         if(target->waitState == WAITING_SEND) {
             target->state = READY;
             List_append(ready_lists[target->priority], target);
             List_remove(waiting_lists[1]);
         }
-        // STILL NEEDS SCHEDULING INFO
+                
+        // Run the next process in the queue
         CURRENT = nextProcess();
         CURRENT->state = RUNNING;
+
+        printf("New current process: \n");
+        procinfo_helper(CURRENT);
 
         if(CURRENT->proc_message != NULL) {
             printf("\nReceiving Message: %s\n", CURRENT->proc_message);
@@ -207,14 +221,22 @@ int send(int pid, char *msg) {
 // Receive a message, block until one arrives
 // Reports: Scheduling information, message text, source of message.
 void receive() {
+    // If there's no messages to receive, move the process to the waiting list
     if(CURRENT->proc_message == NULL) {
+        // Move current process to the waiting list
         CURRENT->state = BLOCKED;
         CURRENT->waitState = WAITING_SEND;
         List_append(waiting_lists[1], CURRENT);
-        // STILL NEEDS SCHEDULING INFO
+        printf("Blocking process: \n");
+        procinfo_helper(CURRENT);
+
+        // Run the next process in the queue
         CURRENT = nextProcess();
         CURRENT->state = RUNNING;
+        printf("New current process: \n");
+        procinfo_helper(CURRENT);
 
+        // If the new process has a message, print it 
         if(CURRENT->proc_message != NULL) {
             printf("\nReceiving Message: %s\n", CURRENT->proc_message);
             CURRENT->proc_message = NULL;
@@ -227,7 +249,20 @@ void receive() {
 // Unblocks sender and delivers reply.
 // Reports: Success or failure.
 int reply(int pid, char *msg) {
+    // Find the target in a list
+    PCB* target = findProcess(pid);
 
+    // If the target isn't current receiving a message, send a message 
+    if(target->proc_message == NULL) {
+        target->proc_message = msg;
+    }
+
+    // If the target was waiting for a reply, remove it from the list
+    if(target->state == BLOCKED && target->waitState == WAITING_RECEIVE) {
+        target->state = READY;
+        List_append(ready_lists[target->priority], target);
+        List_remove(waiting_lists[0]);
+    }
 }
 
 // Initialize the named semaphore with the value given. IDs can take a value from 0 to 4. 
@@ -364,6 +399,7 @@ static void checkInput() {
     int int_input;
     int rv;
     scanf("%c", &input);
+    printf("---------------------------------------------------------------------------\n");
     switch (input) {
         case 'C':
             printf("Please enter a priority number for the process (0 = high, 1 = norm, 2 = low)\n");
@@ -548,6 +584,8 @@ void procinfo_helper(PCB *process) {
         printf("RUNNING\n");
     } else if (process->state == READY) {
         printf("READY\n");
+    } else if (process->state == BLOCKED) {
+        printf("BLOCKED\n");
     } else {
         printf("BLOCKED\n");
     }
