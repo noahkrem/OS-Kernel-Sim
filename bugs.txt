@@ -1,11 +1,5 @@
 Bugs to Fix
 - Semaphores
-- Bad things happen when we kill every process except the init process
-    - We probably want a statically allocated process that corresponds to the initial process
-- We may want to output our errors upon exiting a function, rather than inside the user input function
-- Check requirements for init process on assignment 3 structure document
-    - Do we want to be able to print process info for init process
 - In totalInfo(), do we want to be able to see the init process
-- May want to add a case to send(), where we return -1 if we cannot find the process
 - Sending to running process should fail
 - Allow program to send more than one string

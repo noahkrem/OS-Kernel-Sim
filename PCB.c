@@ -234,7 +234,7 @@ void receive() {
     
     // If the new process has a message, print it 
     if(CURRENT->proc_message != NULL) {  
-        printf("Message received from process %i", CURRENT->msg_src);
+        printf("Message received from process %i\n", CURRENT->msg_src);
         printf("Received Message: %s\n", CURRENT->proc_message);
         CURRENT->proc_message = NULL;
         CURRENT->msg_src = -1;
