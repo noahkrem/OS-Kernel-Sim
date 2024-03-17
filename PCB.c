@@ -35,6 +35,7 @@ int create(int priority) {
     PID_CURR++;
     newPCB->priority = priority;
     newPCB->waitState = 2;
+    newPCB->msg_src = -1;
 
     // If there are no processes currently running
     if (CURRENT == NULL) {
@@ -196,6 +197,7 @@ int send(int pid, char *msg) {
     // Check if target can receive message
     if(target->proc_message == NULL) {
         target->proc_message = msg;
+        target->msg_src = CURRENT->pid;
 
         // Move the current process to waiting list
         CURRENT->state = BLOCKED;
@@ -241,6 +243,16 @@ int send(int pid, char *msg) {
 void receive() {
     // If there's no messages to receive, move the process to the waiting list
     if(CURRENT->proc_message == NULL) {
+        
+        // If the new process has a message, print it 
+        if(CURRENT->proc_message != NULL) {  
+            printf("Message received from process %i", CURRENT->msg_src);
+            printf("Received Message: %s\n", CURRENT->proc_message);
+            CURRENT->proc_message = NULL;
+            CURRENT->msg_src = -1;
+            return;
+        }
+        
         // Move current process to the waiting list
         CURRENT->state = BLOCKED;
         CURRENT->waitState = WAITING_SEND;
@@ -248,17 +260,12 @@ void receive() {
         printf("Blocking process: \n");
         procinfo_helper(CURRENT);
 
+
         // Run the next process in the queue
         CURRENT = nextProcess();
         CURRENT->state = RUNNING;
         printf("New current process: \n");
         procinfo_helper(CURRENT);
-
-        // If the new process has a message, print it 
-        if(CURRENT->proc_message != NULL) {
-            printf("\nReceiving Message: %s\n\n", CURRENT->proc_message);
-            CURRENT->proc_message = NULL;
-        }
         
         return;
     }

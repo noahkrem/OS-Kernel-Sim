@@ -27,6 +27,7 @@ struct PCB_s {
     enum ProcState state;
     enum WaitState waitState;
     char *proc_message;
+    int msg_src;
 };
 
 typedef struct semaphore_t sem_t;
