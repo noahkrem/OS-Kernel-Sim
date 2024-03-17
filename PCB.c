@@ -234,10 +234,21 @@ void receive() {
     
     // If the new process has a message, print it 
     if(CURRENT->proc_message != NULL) {  
+        
         printf("Message received from process %i\n", CURRENT->msg_src);
         printf("Received Message: %s\n", CURRENT->proc_message);
+
+        // Move the source process back onto a ready list
+        // NOTE: WE MAY HAVE TO CHECK IF THE MSG SRC WAS THE INIT PROCESS
+        PCB *src_proc = findProcess(CURRENT->msg_src);
+        List_remove(waiting_lists[0]);  // Dequeue sender process. Cannot use dequeue() here
+        List_append(ready_lists[src_proc->priority], src_proc);
+        src_proc = NULL;
+
+        // Clear the message information from the current process
         CURRENT->proc_message = NULL;
         CURRENT->msg_src = -1;
+
         return;
     }
     // If there's no messages to receive, move the process to the waiting list
