@@ -334,8 +334,10 @@ int List_insert_before(List* pList, void* pItem) {
 int List_append(List* pList, void* pItem) {
     
     // If the node limit has been reached...
-    if (totalNodeCount == LIST_MAX_NUM_NODES)
+    if (totalNodeCount == LIST_MAX_NUM_NODES) {
+        printf("Error: Max process limit reached\n");   // Specific to our PCB datatype
         return LIST_FAIL;
+    }
 
 
     // If the list is empty...

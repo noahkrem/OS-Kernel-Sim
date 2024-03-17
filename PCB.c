@@ -16,7 +16,6 @@ static List * waiting_lists[NUM_WAITING_LIST];  // 0 - waiting on send, 1 - wait
 
 // Create a process and put it on the appropriate ready queue.
 // Reports: success or failure, the pid of created process on success.
-// NOTE: MAY WANT TO DO EXTRA ERROR CHECKING FOR LIST APPEND
 int create(int priority) {
 
     // Check that the given priority is valid
@@ -76,13 +75,11 @@ int fork() {
     // Enqueue the new process
     List_append(ready_lists[newPCB->priority], newPCB);
 
-    printf("Forked Process: %i\n", newPCB->pid);
     return newPCB->pid;  
 }
 
 // Kill the named process and remove it from the system.
 // Reports: Action taken as well as success or failure.
-// NOTE: MAY WANT TO DO MORE TESTING ON FREEPROCESS
 int kill(int pid) {
 
     PCB *toKill = NULL;
@@ -430,35 +427,37 @@ static void checkInput() {
     printf("---------------------------------------------------------------------------\n");
     switch (input) {
         case 'C':
-            printf("Please enter a priority number for the process (0 = high, 1 = norm, 2 = low)\n");
+            printf("Enter process priority (0 = high, 1 = norm, 2 = low): ");
             scanf("%d", &int_input);
-            if(create(int_input) == -1) {
-                printf("failure\n");
+            if (create(int_input) == -1) {
+                printf("Failure: Could not create\n");
             }
             else {
-                printf("success\n");
+                printf("New process ID: %i\n", int_input);
+                printf("Success: Create complete\n");
             }
             break;
         case 'F':
             rv = fork();
             if(rv == -1) {
-                printf("failure\n");
+                printf("Failure: Could not fork\n");
             }
             else {
-                printf("success\n");
+                printf("New process ID: %i\n", rv);
+                printf("Success: Fork complete\n");
             }
             break;
         case 'K':
-            printf("Please enter the pid of the process you want to delete\n");
+            printf("Enter process ID: ");
             scanf("%d", &int_input);
             if (int_input > PID_CURR || int_input < 1) {
                 printf("Failure: Invalid input\n");
             } 
             else if (kill(int_input) == -1) {
-                printf("Failure: Could not delete process\n");
+                printf("Failure: Could not kill\n");
             }
             else {
-                printf("success\n");
+                printf("Success: Kill complete\n");
             }
             break;
         case 'E':
@@ -468,18 +467,17 @@ static void checkInput() {
             quantum();
             break;
         case 'S':
-            printf("Please enter the pid of the process you want to send a message to\n");
+            printf("Enter process ID of receiver: ");
             scanf("%d", &int_input);
-            printf("Please enter the message you want to send:\n");
+            printf("Enter a message: ");
             scanf("%s", msg);
             if(send(int_input, msg) == -1) {
-                printf("failure\n");
+                printf("Failure: Could not send\n");
             }
             else {
-                printf("success\n");
+                printf("Success: Send complete\n");
             }
             // Need to put process into waiting reply queue
-            printf("scheduling info\n");
             break;
         case 'R':
             receive();
