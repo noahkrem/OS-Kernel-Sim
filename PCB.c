@@ -84,7 +84,6 @@ int fork() {
         return -1;
     }
     else {
-        printf("Forked Process: %i\n", newPCB->pid);
         return newPCB->pid;  
     }
 }
@@ -467,6 +466,7 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * read
     PID_CURR++;
     INIT->priority = 3;
     INIT->state = RUNNING;
+    CURRENT = INIT;
     initMade = true;
 
     // Start the input loop
@@ -534,11 +534,9 @@ static void checkInput() {
             else {
                 printf("Success: Send complete\n");
             }
-            // Need to put process into waiting reply queue
             break;
         case 'R':
             receive();
-            // Put into waiting queue
             break;
         case 'Y':
             printf("Please enter the pid to reply to\n");
