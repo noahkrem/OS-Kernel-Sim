@@ -12,7 +12,7 @@ static unsigned int SEM_NUM = 0;
 
 static sem_t sem_array[NUM_SEMAPHORE]; 
 static List * ready_lists[NUM_READY_LIST];      // 0 - high priority, 1 - normal priority, 2 - low priority
-static List * waiting_lists[NUM_WAITING_LIST];  // 0 - waiting on send, 1 - waiting on receive
+static List * waiting_lists[NUM_WAITING_LIST];  // 0 - waiting for send, 1 - waiting for reply
 
 // Create a process and put it on the appropriate ready queue.
 // Reports: success or failure, the pid of created process on success.
@@ -182,6 +182,7 @@ void quantum() {
 // Reports: success or failure, scheduling information, and reply source and text (once
 //  reply arrives).
 int send(int pid, char *msg) {
+    
     // Look for the target
     PCB* target = findProcess(pid);
     if(target == NULL) {
@@ -194,6 +195,24 @@ int send(int pid, char *msg) {
         target->proc_message = msg;
         target->msg_src = CURRENT->pid;
 
+        // Check if the receiving process is blocked
+        if (target->state == BLOCKED) {
+            // Check if the receiving process is waiting for a message
+            if (target->waitState == WAITING_SEND) {
+                List_remove(waiting_lists[1]);  // Remove target process from the waiting queue (it is already waiting_list[1]'s current process)
+                if (List_append(ready_lists[target->priority], target) == -1) {
+                    return -1;
+                } 
+                // Change the target's state, make it output necessary reception message
+                target->state = READY;
+                printf("Message received from process %i\n", target->msg_src);
+                printf("Received Message: %s\n", target->proc_message);
+
+                // Return success
+                return 1;
+            }
+        }
+        // If the target process is not blocked:
         // Move the current process to waiting list
         CURRENT->state = BLOCKED;
         CURRENT->waitState = WAITING_RECEIVE;
@@ -203,15 +222,6 @@ int send(int pid, char *msg) {
 
         printf("Blocking process: \n");
         procinfo_helper(CURRENT);
-
-        // If the target was waiting for a send, remove it from the list
-        if(target->waitState == WAITING_SEND) {
-            target->state = READY;
-            if(List_append(ready_lists[target->priority], target) == -1) {
-                return -1;
-            }
-            List_remove(waiting_lists[1]);
-        }
                 
         // Run the next process in the queue
         CURRENT = nextProcess();
@@ -223,7 +233,7 @@ int send(int pid, char *msg) {
         return 1;
     }
     else {
-        printf("Error: This PCB already has a message queued \n");
+        printf("Error: This PCB already has a message queued\n");
         return -1;
     }
 }
@@ -254,7 +264,6 @@ void receive() {
     // If there's no messages to receive, move the process to the waiting list
     else {
         
-
         // Move current process to the waiting list
         CURRENT->state = BLOCKED;
         CURRENT->waitState = WAITING_SEND;
@@ -444,15 +453,6 @@ static void * dequeue(List * list) {
     List_first(list);
     void *ret = List_remove(list);
     return ret;
-}
-
-bool readyListEmpty() {
-    if((ready_lists[0]) == 0 && List_count(ready_lists[1]) == 0 && List_count(ready_lists[2]) == 0) {
-        return true;
-    }
-    else {
-        return false;
-    }
 }
 
 // Initialize all lists
