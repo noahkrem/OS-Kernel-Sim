@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-static PCB* CURRENT = NULL;
+static PCB *CURRENT = NULL;
+static PCB *INIT = NULL;
 static unsigned int PID_CURR = 0;
 static bool initMade = false;
 static unsigned int SEM_NUM = 0;
@@ -406,9 +407,15 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * read
         sem_array[i].sem_value = -1;    // Set to one, to later check semaphore initialization
     }
 
-    create(3);
+    // Initialize the special init process
+    INIT = malloc(sizeof(PCB));
+    INIT->pid = PID_CURR;
+    PID_CURR++;
+    INIT->priority = 3;
+    INIT->state = RUNNING;
     initMade = true;
 
+    // Start the input loop
     while(1) {
         checkInput();
     }
