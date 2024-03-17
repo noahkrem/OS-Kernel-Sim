@@ -26,6 +26,7 @@ int create(int priority) {
     PCB *newPCB = malloc(sizeof(PCB));
     // If allocation fails
     if (newPCB == NULL) {
+        printf("Error: Memory allocation failed\n");
         return -1;
     }
 
@@ -43,12 +44,18 @@ int create(int priority) {
     // If the currently running process is the init process
     else if (CURRENT->priority == 3) {
         newPCB->state = RUNNING;
-        List_append(ready_lists[CURRENT->priority], CURRENT);
-        CURRENT = newPCB;
+        if(List_append(ready_lists[CURRENT->priority], CURRENT) != -1) {
+            CURRENT = newPCB;
+        }
+        else {
+            return -1;
+        }
     }
     else {
         newPCB->state = READY;
-        List_append(ready_lists[newPCB->priority], newPCB);
+        if(List_append(ready_lists[newPCB->priority], newPCB) == -1) {
+            return -1;
+        }
     }
 
     // Return pid of the created process
@@ -73,9 +80,13 @@ int fork() {
     newPCB->state = READY;
 
     // Enqueue the new process
-    List_append(ready_lists[newPCB->priority], newPCB);
-
-    return newPCB->pid;  
+    if(List_append(ready_lists[newPCB->priority], newPCB) == -1) {
+        return -1;
+    }
+    else {
+        printf("Forked Process: %i\n", newPCB->pid);
+        return newPCB->pid;  
+    }
 }
 
 // Kill the named process and remove it from the system.
@@ -118,6 +129,7 @@ int kill(int pid) {
     }
 
     // If we reach this line, process removal has failed
+    printf("Error: PCB not found\n");
     return -1;
 }
 
@@ -150,7 +162,7 @@ void quantum() {
 
     if(CURRENT->pid == 0) {
         List_append(ready_lists[CURRENT->priority], CURRENT);
-        CURRENT = temp;
+            CURRENT = temp;
     }
     else {
         CURRENT->state = RUNNING;
@@ -159,7 +171,7 @@ void quantum() {
     }
 
     if(CURRENT->proc_message != NULL) {
-        printf("\nReceiving Message: %s\n", CURRENT->proc_message);
+        printf("\nReceiving Message: %s\n\n", CURRENT->proc_message);
         CURRENT->proc_message = NULL;
     }
 
@@ -176,6 +188,10 @@ void quantum() {
 int send(int pid, char *msg) {
     // Look for the target
     PCB* target = findProcess(pid);
+    if(target == NULL) {
+        printf("Error: PCB not found\n");
+        return -1;
+    }
 
     // Check if target can receive message
     if(target->proc_message == NULL) {
@@ -184,7 +200,9 @@ int send(int pid, char *msg) {
         // Move the current process to waiting list
         CURRENT->state = BLOCKED;
         CURRENT->waitState = WAITING_RECEIVE;
-        List_append(waiting_lists[0], CURRENT);
+        if(List_append(waiting_lists[0], CURRENT) == -1) {
+            return -1;
+        }
 
         printf("Blocking process: \n");
         procinfo_helper(CURRENT);
@@ -192,7 +210,9 @@ int send(int pid, char *msg) {
         // If the target was waiting for a send, remove it from the list
         if(target->waitState == WAITING_SEND) {
             target->state = READY;
-            List_append(ready_lists[target->priority], target);
+            if(List_append(ready_lists[target->priority], target) == -1) {
+                return -1;
+            }
             List_remove(waiting_lists[1]);
         }
                 
@@ -204,13 +224,14 @@ int send(int pid, char *msg) {
         procinfo_helper(CURRENT);
 
         if(CURRENT->proc_message != NULL) {
-            printf("\nReceiving Message: %s\n", CURRENT->proc_message);
+            printf("\nReceiving Message: %s\n\n", CURRENT->proc_message);
             CURRENT->proc_message = NULL;
         }
         
         return 1;
     }
     else {
+        printf("Error: This PCB already has a message queued \n");
         return -1;
     }
 }
@@ -235,7 +256,7 @@ void receive() {
 
         // If the new process has a message, print it 
         if(CURRENT->proc_message != NULL) {
-            printf("\nReceiving Message: %s\n", CURRENT->proc_message);
+            printf("\nReceiving Message: %s\n\n", CURRENT->proc_message);
             CURRENT->proc_message = NULL;
         }
         
@@ -248,17 +269,28 @@ void receive() {
 int reply(int pid, char *msg) {
     // Find the target in a list
     PCB* target = findProcess(pid);
+    if(target == NULL) {
+        printf("Error: PCB not found\n");
+        return -1;
+    }
 
     // If the target isn't current receiving a message, send a message 
     if(target->proc_message == NULL) {
         target->proc_message = msg;
-    }
 
-    // If the target was waiting for a reply, remove it from the list
-    if(target->state == BLOCKED && target->waitState == WAITING_RECEIVE) {
-        target->state = READY;
-        List_append(ready_lists[target->priority], target);
-        List_remove(waiting_lists[0]);
+        // If the target was waiting for a reply, remove it from the list
+        if(target->state == BLOCKED && target->waitState == WAITING_RECEIVE) {
+            target->state = READY;
+            if(List_append(ready_lists[target->priority], target) == -1) {
+                return -1;
+            }
+            List_remove(waiting_lists[0]);
+        }
+        return 1;
+    }
+    else {
+        printf("Error: This PCB already has a message queued \n");
+        return -1;
     }
 }
 
@@ -269,14 +301,17 @@ int new_Sem(int sem_id, unsigned int init) {
 
     // Check for valid semaphore ID
     if (sem_id > 4 || sem_id < 0) {
+        printf("Error: Not a valid semaphore ID\n");
         return -1;
     }
     // Check that we have not created too many semaphores
     if (SEM_NUM >= NUM_SEMAPHORE) {
+        printf("Error: Created too many semaphores\n");
         return -1;
     }
     // Check that we have not already created a semaphore with the given ID
     if (sem_array[sem_id].sem_value != -1) {
+        printf("Error: This semaphore has already been created!\n");
         return -1;
     }
 
@@ -289,9 +324,20 @@ int new_Sem(int sem_id, unsigned int init) {
 //  IDs to be numbered 0 through 4.
 // Reports: Action taken (blocked or not) as well as success or failure.
 int sem_P(int sem_id) {
+    // Check for valid semaphore ID
+    if (sem_id > 4 || sem_id < 0) {
+        printf("Error: Not a valid semaphore ID\n");
+        return -1;
+    }
+
+    // Decrement semaphore value
     sem_array[sem_id].sem_value--;
+
+    // If the semaphore value is less than 0, add the process to the waiting list
     if(sem_array[sem_id].sem_value < 0) {
-        List_append(sem_array[sem_id].pList, CURRENT);
+        if(List_append(sem_array[sem_id].pList, CURRENT) == -1) {
+            return -1;
+        }
         CURRENT->state = BLOCKED;
         CURRENT = nextProcess();
         CURRENT->state = RUNNING;
@@ -301,11 +347,22 @@ int sem_P(int sem_id) {
 // Execute the semaphore V operation on behalf of the running process. Assume semaphore 
 //  IDs to be numbered 0 through 4.
 int sem_V(int sem_id) {
+    // Check for valid semaphore ID
+    if (sem_id > 4 || sem_id < 0) {
+        printf("Error: Not a valid semaphore ID\n");
+        return -1;
+    }
+
+    // Increment semaphore value
     sem_array[sem_id].sem_value++;
+
+    // If the semaphore value is zero or less, wake up a process from the waiting list
     if(sem_array[sem_id].sem_value <= 0) {
         PCB* temp = (PCB *)dequeue(sem_array[sem_id].pList);
         temp->state = READY;
-        List_append(ready_lists[temp->priority], temp);
+        if(List_append(ready_lists[temp->priority], temp) == -1) {
+            return -1;
+        }
     }
 }
 
