@@ -43,6 +43,7 @@ int create(int priority) {
     }
     // If the currently running process is the init process
     else if (CURRENT->priority == 3) {
+        INIT->state = READY;
         newPCB->state = RUNNING;
         if(List_append(ready_lists[CURRENT->priority], CURRENT) != -1) {
             CURRENT = newPCB;
@@ -539,16 +540,16 @@ static void checkInput() {
             receive();
             break;
         case 'Y':
-            printf("Please enter the pid to reply to\n");
+            printf("Enter process ID to reply to: ");
             scanf("%d", &int_input);
-            printf("Please enter your reply message:\n");
+            printf("Enter message: ");
             scanf("%s", msg);
             // unblock sender
-            if(reply(int_input, msg) == -1) {
-                printf("failure\n");
+            if (reply(int_input, msg) == -1) {
+                printf("Failure: Could not reply\n");
             }
             else {
-                printf("success\n");
+                printf("Success: Reply complete\n");
             }
             break;
         case 'N':
@@ -615,6 +616,7 @@ static PCB* nextProcess() {
         return dequeue(ready_lists[2]);
     }
     else {
+        INIT->state = RUNNING;
         return INIT;
     }
 }
