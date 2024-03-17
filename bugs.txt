@@ -9,6 +9,7 @@ Bugs to Fix
 - We may want to output our errors upon exiting a function, rather than inside the user input function
 - Check requirements for init process on assignment 3 structure document
     - Do we want to be able to print process info for init process
+- In totalInfo(), do we want to be able to see the init process
 
 Possible Questions for Discussion Board
 - Do we need to allocate space for our semaphores, or can they be statically allocated?

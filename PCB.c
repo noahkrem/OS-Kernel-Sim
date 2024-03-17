@@ -90,9 +90,9 @@ int kill(int pid) {
     if (CURRENT != NULL) {
         if (CURRENT->pid == pid) {
             toKill = CURRENT;
-            quantum();
-            List_remove(ready_lists[toKill->priority]);
+            CURRENT = nextProcess();
             freeProcess(toKill);
+            printf("Process %i killed\n", pid);
             return 1;
         }
     }
@@ -100,12 +100,8 @@ int kill(int pid) {
     toKill = findProcess(pid); // Find the desired process. The list's "current" node is to be removed now
 
     if (toKill != NULL) {
-        // If the process is currently running
-        if (toKill->state == RUNNING) {
-            quantum();
-            freeProcess(toKill);
         // If the process is on a ready queue 
-        } else if (toKill->state == READY) {
+        if (toKill->state == READY) {
             List_remove(ready_lists[toKill->priority]);
             freeProcess(toKill);
         // If the process is on a waiting queue
@@ -134,6 +130,8 @@ void exit_proc() {
 
     if (CURRENT != NULL) {
         kill(CURRENT->pid);
+        printf("--Current process: \n");
+        procinfo_helper(CURRENT);
     }
 }
 
@@ -323,7 +321,6 @@ void procinfo(int pid) {
 
     // Either the process is the currently running process, or it is stored in a list
     if (CURRENT == NULL || CURRENT->pid != pid) {
-        printf("entering find process...\n");
         temp = findProcess(pid);
     } else if (CURRENT->pid == pid) {
         temp = CURRENT;
@@ -466,7 +463,6 @@ static void checkInput() {
             break;
         case 'E':
             exit_proc();
-            printf("report info\n");
             break;
         case 'Q':
             quantum();
@@ -555,7 +551,8 @@ static void freeProcess(PCB *process) {
 }
 
 static PCB* nextProcess() {
-    if(List_count(ready_lists[0]) != 0) {
+    
+    if (List_count(ready_lists[0]) != 0) {
         return dequeue(ready_lists[0]);
     }
     else if(List_count(ready_lists[1]) != 0) {
@@ -565,13 +562,18 @@ static PCB* nextProcess() {
         return dequeue(ready_lists[2]);
     }
     else {
-        return NULL;
+        return INIT;
     }
 }
 
 // Search the relevant queues for the given pid.
 // The queue's current node will now be the desired process.
 static PCB* findProcess(int pid) {
+
+    // If we search for the init process
+    if (pid == 0) {
+        return INIT;
+    }
 
     // Search the ready lists
     for (int i = 0; i <= 2; i++) {
