@@ -241,18 +241,19 @@ int send(int pid, char *msg) {
 // Receive a message, block until one arrives
 // Reports: Scheduling information, message text, source of message.
 void receive() {
+    
+    // If the new process has a message, print it 
+    if(CURRENT->proc_message != NULL) {  
+        printf("Message received from process %i", CURRENT->msg_src);
+        printf("Received Message: %s\n", CURRENT->proc_message);
+        CURRENT->proc_message = NULL;
+        CURRENT->msg_src = -1;
+        return;
+    }
     // If there's no messages to receive, move the process to the waiting list
-    if(CURRENT->proc_message == NULL) {
+    else {
         
-        // If the new process has a message, print it 
-        if(CURRENT->proc_message != NULL) {  
-            printf("Message received from process %i", CURRENT->msg_src);
-            printf("Received Message: %s\n", CURRENT->proc_message);
-            CURRENT->proc_message = NULL;
-            CURRENT->msg_src = -1;
-            return;
-        }
-        
+
         // Move current process to the waiting list
         CURRENT->state = BLOCKED;
         CURRENT->waitState = WAITING_SEND;
