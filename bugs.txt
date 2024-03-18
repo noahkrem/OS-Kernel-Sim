@@ -1,8 +1,11 @@
 Bugs to Fix
 - Semaphores
-- In totalInfo(), do we want to be able to see the init process
 - Allow program to send more than one string
 - Check for "note:" comments and "Testing..." comments
 - Killing process 0 should not execute
 - Sending a message changes the process's own message when it does not go through
 - Error with send and reply: The proc_message pointer is pointing to the same memory for each process
+- Have programmed reply() to only work when there is already a message send to the current process
+    - Not sure if this is right but makes it easier for us to code
+    - After we have replied, does the target process have to then receive that new message?
+    

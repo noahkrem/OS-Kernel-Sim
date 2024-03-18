@@ -202,7 +202,7 @@ int send(int pid, char *msg) {
         return -1;
     }
 
-    // We must not block the current process
+    // We must not block the init process
     if (target->state != BLOCKED && CURRENT == INIT) {
         printf("Error: Cannot block the init process\n");
         return -1;
@@ -286,7 +286,7 @@ void receive() {
     }
     
     // If the new process has a message, print it 
-    if(CURRENT->proc_message != NULL) {  
+    if (CURRENT->proc_message != NULL) {  
         
         printf("Message received from process %i\n", CURRENT->msg_src);
         printf("Received Message: %s\n", CURRENT->proc_message);
@@ -333,36 +333,82 @@ void receive() {
 
 // Unblocks sender and delivers reply.
 // Reports: Success or failure.
+// Assumption: We can only reply to a process that has previously sent a message to the current process
 int reply(int pid, char *msg) {
     
+    // If we try to send to the currently running process, operation fails
+    if (CURRENT->pid == pid) {
+        printf("Error: Cannot send to currently running process\n");
+        return -1;
+    }
+
     // Find the target in a list
     PCB* target = findProcess(pid);
-    
-    // If we cannot find the given pid, operation fails
     if(target == NULL) {
         printf("Error: PCB not found\n");
         return -1;
     }
 
-    // If the target doesn't currently hold a message, reply with a message
-    if(target->proc_message == NULL) {
-        
-        // printf("Setting proc_msg...\n"); // Testing...
-        target->proc_message = msg;
+    // If the target already has a message queued
+    if (target->proc_message != NULL) {
+        printf("Error: Target already has a message queued\n");
+        return -1;
+    }
 
-        // If the target was waiting for a reply, remove it from the list
-        if(target->state == BLOCKED && target->waitState == WAITING_RECEIVE) {
-            target->state = READY;
-            if(List_append(ready_lists[target->priority], target) == -1) {
-                return -1;
-            }
-            List_remove(waiting_lists[0]);
+    // We must not block the init process
+    if (target->state != BLOCKED && CURRENT == INIT) {
+        printf("Error: Cannot block the init process\n");
+        return -1;
+    }
+
+    // We cannot reply if the current process has not been sent a message
+    if (CURRENT->proc_message == NULL) {
+        printf("Error: Current process has not been sent a message\n");
+        return -1;
+    }
+
+    // We can only reply to a process that has previously sent a message to the current process
+    if (target != findProcess(CURRENT->msg_src)) {
+        printf("Error: Current process has never received a message from target\n");
+        return -1;
+    }
+
+    // If the target doesn't currently hold a message, reply with a message:
+    target->proc_message = msg;
+    target->msg_src = CURRENT->pid;
+
+    // If the target was waiting for a reply, remove it from the list
+    if (target->state == BLOCKED && target->waitState == WAITING_RECEIVE) {
+        target->state = READY;
+        if (List_append(ready_lists[target->priority], target) == -1) {
+            return -1;
         }
+        List_remove(waiting_lists[0]);
+
+        // Output necessary messages to the screen
+        printf("Message received from process %i\n", target->msg_src);
+        printf("Received Message: %s\n", target->proc_message);
+        target->state = READY;
+        target->msg_src = -1;
+        target->proc_message = NULL;
+
+        // Release message information from current process
+        CURRENT->msg_src = -1;
+        CURRENT->proc_message = NULL;
+        
+        // Return success
         return 1;
     }
+    // If the target process was not waiting for a reply
     else {
-        printf("Error: This PCB already has a message queued \n");
-        return -1;
+        target->msg_src = CURRENT->pid;
+        target->proc_message = msg;
+
+        CURRENT->state = BLOCKED;
+        CURRENT->waitState = WAITING_RECEIVE;
+        List_append(waiting_lists[1], CURRENT);
+        CURRENT = nextProcess();
+        CURRENT->state = RUNNING;
     }
 }
 
