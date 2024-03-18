@@ -386,6 +386,10 @@ int new_Sem(int sem_id, unsigned int init) {
         printf("Error: This semaphore has already been created!\n");
         return -1;
     }
+    if (init < 1) {
+        printf("Error: Invalid initialization value\n");
+        return -1;
+    }
 
     sem_array[sem_id].sem_value = init;
     sem_array[sem_id].pList = List_create();
@@ -423,29 +427,33 @@ int sem_P(int sem_id) {
 
         return 1;
     }
+    else {
+        printf("No resources available on this semaphore, process is not blocked\n");
+        return -1;
+    }
 }
 
 // Execute the semaphore V operation on behalf of the running process. Assume semaphore 
 //  IDs to be numbered 0 through 4.
 int sem_V(int sem_id) {
     // Check for valid semaphore ID
-    printf("SemID: %d\n", sem_array[sem_id].sem_value);
     if (sem_id > 4 || sem_id < 0) {
         printf("Error: Not a valid semaphore ID\n");
         return -1;
     }
-    if(sem_array[sem_id].sem_value == 1) {
-        printf("No processes are in the semaphore, a process was not readied\n");
-        printf("Current process: \n");
-        procinfo_helper(CURRENT);
-        return 1;
-    }
+    // if(sem_array[sem_id].sem_value == 1) {
+    //     printf("No processes are in the semaphore, a process was not readied\n");
+    //     printf("Current process: \n");
+    //     procinfo_helper(CURRENT);
+    //     return -1;
+    // }
 
     // Increment semaphore value
     sem_array[sem_id].sem_value++;
 
     // If the semaphore value is zero or less, wake up a process from the waiting list
-    if(sem_array[sem_id].sem_value <= 0) {
+    // if(sem_array[sem_id].sem_value <= 0) {
+    if(List_count(sem_array[sem_id].pList) != 0) {
         PCB* temp = (PCB *)dequeue(sem_array[sem_id].pList);
         temp->state = READY;
         if(CURRENT == INIT) {
@@ -463,7 +471,13 @@ int sem_V(int sem_id) {
             return -1;
         }
         return 1;
+    } else {
+        printf("No processes are in the semaphore, a process was not readied\n");
+        printf("Current process: \n");
+        procinfo_helper(CURRENT);
+        return -1;
     }
+    
 }
 
 // Dump complete state information of process to screen.
@@ -750,6 +764,21 @@ static PCB* findProcess(int pid) {
             waiting_lists[i]->current = waiting_lists[i]->current->next;
         }
         // printf("Match not found in waiting list %i...\n", i);    // Testing
+    }
+
+    // Search the semaphore waiting lists
+    for(int i = 0; i <= 4; i++) {
+            if(sem_array[i].sem_value != -1) {
+                List_first(sem_array[i].pList);
+                while (sem_array[i].pList->current != NULL) {
+                    // Check for a match
+                    PCB *processPointer = sem_array[i].pList->current->item;
+                    if (processPointer->pid == pid)
+                        return processPointer;
+                    // If no match, advance
+                    sem_array[i].pList->current = sem_array[i].pList->current->next;
+            }
+        }
     }
 
     // If we reach this line, process with the given pid was not found

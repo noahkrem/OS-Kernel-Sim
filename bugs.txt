@@ -6,3 +6,4 @@ Bugs to Fix
 - Killing process 0 should not execute
 - Sending a message changes the process's own message when it does not go through
 - Error with send and reply: The proc_message pointer is pointing to the same memory for each process
+- Need to make it possible to kill processes in semaphores
