@@ -395,17 +395,26 @@ int sem_P(int sem_id) {
         return -1;
     }
 
-    // Decrement semaphore value
-    sem_array[sem_id].sem_value--;
+    // If the semaphore value is not less than 0, add the process to the waiting list
+    if(sem_array[sem_id].sem_value > 0) {
+        // Decrement semaphore value
+        sem_array[sem_id].sem_value--;
 
-    // If the semaphore value is less than 0, add the process to the waiting list
-    if(sem_array[sem_id].sem_value < 0) {
         if(List_append(sem_array[sem_id].pList, CURRENT) == -1) {
             return -1;
         }
+        // Block the process
         CURRENT->state = BLOCKED;
+        printf("Blocking process: \n");
+        procinfo_helper(CURRENT);
+
+        // Run the next process in the queue
         CURRENT = nextProcess();
         CURRENT->state = RUNNING;
+        printf("New current process: \n");
+        procinfo_helper(CURRENT);
+
+        return 1;
     }
 }
 
@@ -413,9 +422,16 @@ int sem_P(int sem_id) {
 //  IDs to be numbered 0 through 4.
 int sem_V(int sem_id) {
     // Check for valid semaphore ID
+    printf("SemID: %d\n", sem_array[sem_id].sem_value);
     if (sem_id > 4 || sem_id < 0) {
         printf("Error: Not a valid semaphore ID\n");
         return -1;
+    }
+    if(sem_array[sem_id].sem_value == 1) {
+        printf("No processes are in the semaphore, a process was not readied\n");
+        printf("Current process: \n");
+        procinfo_helper(CURRENT);
+        return 1;
     }
 
     // Increment semaphore value
@@ -425,9 +441,21 @@ int sem_V(int sem_id) {
     if(sem_array[sem_id].sem_value <= 0) {
         PCB* temp = (PCB *)dequeue(sem_array[sem_id].pList);
         temp->state = READY;
-        if(List_append(ready_lists[temp->priority], temp) == -1) {
+        if(CURRENT == INIT) {
+            INIT->state = READY;
+            printf("Init process expired: \n");
+            procinfo_helper(INIT);
+
+            temp->state = RUNNING;
+            CURRENT = temp;
+            printf("New current process: \n");
+            procinfo_helper(CURRENT);
+            return 1;
+        }
+        else if(List_append(ready_lists[temp->priority], temp) == -1) {
             return -1;
         }
+        return 1;
     }
 }
 
@@ -536,6 +564,7 @@ static void checkInput() {
     char input;
     char msg[256];
     int int_input;
+    int int_input2;
     int rv;
     scanf("%c", &input);
     printf("---------------------------------------------------------------------------\n");
@@ -609,14 +638,16 @@ static void checkInput() {
             }
             break;
         case 'N':
-            printf("Please enter the semaphore ID of the new semaphore\n");
+            printf("Please enter the semaphore ID of the new semaphore: ");
             scanf("%d", &int_input);
+            printf("Please enter the initial value of the semaphore: ");
+            scanf("%d", &int_input2);
             // need to figure out number
-            if(new_Sem(int_input, 0) == -1) {
-                printf("failure\n");
+            if(new_Sem(int_input, int_input2) == -1) {
+                printf("Failure: Semaphore was not created\n");
             }
             else {
-                printf("success\n");
+                printf("Success: Semaphore created\n");
             }
             break;
         case 'P':
@@ -728,8 +759,6 @@ void procinfo_helper(PCB *process) {
         printf("RUNNING\n");
     } else if (process->state == READY) {
         printf("READY\n");
-    } else if (process->state == BLOCKED) {
-        printf("BLOCKED\n");
     } else {
         printf("BLOCKED\n");
     }
