@@ -9,3 +9,4 @@ Bugs to Fix
     - Not sure if this is right but makes it easier for us to code
     - After we have replied, does the target process have to then receive that new message?
     
+- Need to make it possible to kill processes in semaphores
