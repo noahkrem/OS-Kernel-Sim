@@ -269,6 +269,14 @@ int send(int pid, char *msg) {
 // Receive a message, block until one arrives
 // Reports: Scheduling information, message text, source of message.
 void receive() {
+
+    if (CURRENT == INIT) {
+        // We should never block the init process
+        if (CURRENT->proc_message == NULL) {
+            printf("Error: Cannot block the init process\n");
+            return;
+        }
+    }
     
     // If the new process has a message, print it 
     if(CURRENT->proc_message != NULL) {  
@@ -321,8 +329,11 @@ void receive() {
 // Unblocks sender and delivers reply.
 // Reports: Success or failure.
 int reply(int pid, char *msg) {
+    
     // Find the target in a list
     PCB* target = findProcess(pid);
+    
+    // If we cannot find the given pid, operation fails
     if(target == NULL) {
         printf("Error: PCB not found\n");
         return -1;
@@ -536,7 +547,7 @@ static void checkInput() {
                 printf("Failure: Could not create\n");
             }
             else {
-                printf("New process ID: %i\n", int_input);
+                printf("New process ID: %i\n", PID_CURR-1);
                 printf("Success: Create complete\n");
             }
             break;
