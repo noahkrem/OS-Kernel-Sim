@@ -96,6 +96,12 @@ int kill(int pid) {
 
     PCB *toKill = NULL;
 
+    // If user is requesting to kill the init process
+    if (INIT == CURRENT) {
+        printf("Error: Cannot kill init process\n");
+        return -1;
+    }
+
     if (CURRENT != NULL) {
         if (CURRENT->pid == pid) {
             toKill = CURRENT;
@@ -395,12 +401,18 @@ int reply(int pid, char *msg) {
         // Release message information from current process
         CURRENT->msg_src = -1;
         CURRENT->proc_message = NULL;
+
+        // If the current process is the INIT process
+        if (CURRENT == INIT) {
+            CURRENT = nextProcess();
+        }
         
         // Return success
         return 1;
     }
     // If the target process was not waiting for a reply
     else {
+
         target->msg_src = CURRENT->pid;
         target->proc_message = msg;
 
@@ -660,7 +672,7 @@ static void checkInput() {
         case 'K':
             printf("Enter process ID: ");
             scanf("%d", &int_input);
-            if (int_input > PID_CURR || int_input < 1) {
+            if (int_input > PID_CURR || int_input < 0) {
                 printf("Failure: Invalid input\n");
             } 
             else if (kill(int_input) == -1) {
