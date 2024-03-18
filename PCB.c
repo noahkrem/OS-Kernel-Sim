@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 static PCB *CURRENT = NULL;
 static PCB *INIT = NULL;
@@ -221,7 +222,7 @@ int send(int pid, char *msg) {
             
             // Give the target process the message
             printf("Setting proc_msg...\n"); // Testing...
-            target->proc_message = msg;
+            target->proc_message = strdup(msg);
             target->msg_src = CURRENT->pid;
 
             List_remove(waiting_lists[1]);  // Remove target process from the waiting queue (it is already waiting_list[1]'s current process)
@@ -233,6 +234,7 @@ int send(int pid, char *msg) {
             printf("Received Message: %s\n", target->proc_message);
             target->state = READY;
             target->msg_src = -1;
+            free(target->proc_message);
             target->proc_message = NULL;
 
             // If the currently running process is the init process, make the target the newly running process
@@ -263,7 +265,7 @@ int send(int pid, char *msg) {
 
     // Give the target process the message
     printf("Setting proc_msg...\n"); // Testing...
-    target->proc_message = msg;
+    target->proc_message = strdup(msg);
     target->msg_src = CURRENT->pid;
 
     printf("Blocking process: \n");
@@ -304,6 +306,7 @@ void receive() {
         List_append(ready_lists[src_proc->priority], src_proc);
 
         // Clear the message information from the current process
+        free(CURRENT->proc_message);
         CURRENT->proc_message = NULL;
         CURRENT->msg_src = -1;
 
@@ -380,7 +383,7 @@ int reply(int pid, char *msg) {
     }
 
     // If the target doesn't currently hold a message, reply with a message:
-    target->proc_message = msg;
+    target->proc_message = strdup(msg);
     target->msg_src = CURRENT->pid;
 
     // If the target was waiting for a reply, remove it from the list
@@ -396,10 +399,12 @@ int reply(int pid, char *msg) {
         printf("Received Message: %s\n", target->proc_message);
         target->state = READY;
         target->msg_src = -1;
+        free(target->proc_message);
         target->proc_message = NULL;
 
         // Release message information from current process
         CURRENT->msg_src = -1;
+        free(CURRENT->proc_message);
         CURRENT->proc_message = NULL;
 
         // If the current process is the INIT process
@@ -414,7 +419,7 @@ int reply(int pid, char *msg) {
     else {
 
         target->msg_src = CURRENT->pid;
-        target->proc_message = msg;
+        target->proc_message = strdup(msg);
 
         CURRENT->state = BLOCKED;
         CURRENT->waitState = WAITING_RECEIVE;
@@ -764,7 +769,10 @@ static void checkInput() {
 // Free a process control block
 static void freeProcess(PCB *process) {
     
-    process->proc_message = NULL;
+    if (process->proc_message != NULL) {
+       free(process->proc_message);
+       process->proc_message = NULL;
+    }
     free(process);
     
     process = NULL;
