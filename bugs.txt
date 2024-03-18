@@ -1,6 +1,5 @@
 Bugs to Fix
 - Semaphores
 - In totalInfo(), do we want to be able to see the init process
-- Sending to running process should fail
 - Allow program to send more than one string
 - Check for "note:" comments
