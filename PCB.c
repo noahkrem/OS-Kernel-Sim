@@ -344,10 +344,10 @@ int reply(int pid, char *msg) {
         return -1;
     }
 
-    // If the target isn't current receiving a message, send a message 
+    // If the target doesn't currently hold a message, reply with a message
     if(target->proc_message == NULL) {
         
-        printf("Setting proc_msg...\n"); // Testing...
+        // printf("Setting proc_msg...\n"); // Testing...
         target->proc_message = msg;
 
         // If the target was waiting for a reply, remove it from the list
