@@ -2,4 +2,6 @@ Bugs to Fix
 - Semaphores
 - In totalInfo(), do we want to be able to see the init process
 - Allow program to send more than one string
-- Check for "note:" comments
+- Check for "note:" comments and "Testing..." comments
+- Killing process 0 should not execute
+- Sending a message changes the process's own message when it does not go through

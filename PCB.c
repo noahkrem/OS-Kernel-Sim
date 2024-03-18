@@ -189,12 +189,6 @@ int send(int pid, char *msg) {
         return -1;
     }
 
-    // If the current process already has a message queued, we cannot send another message
-    if (CURRENT->proc_message != NULL) {
-        printf("Error: This PCB already has a message queued\n");
-        return -1;
-    }
-
     // Look for the target
     PCB* target = findProcess(pid);
     if (target == NULL) {
@@ -202,20 +196,28 @@ int send(int pid, char *msg) {
         return -1;
     }
 
-    // Check if the target already has a message queued
+    // If the target already has a message queued
     if (target->proc_message != NULL) {
-        printf("Error: Target PCB already has a message queued\n");
+        printf("Error: Target already has a message queued\n");
         return -1;
     }
 
-    // Check if target can receive message
-    target->proc_message = msg;
-    target->msg_src = CURRENT->pid;
+    // We must not block the current process
+    if (target->state != BLOCKED && CURRENT == INIT) {
+        printf("Error: Cannot block the init process\n");
+        return -1;
+    }
 
     // Check if the receiving process is blocked
     if (target->state == BLOCKED) {
-        // Check if the receiving process is waiting for a message
+        // Check if the receiving process is waiting for a send
         if (target->waitState == WAITING_SEND) {
+            
+            // Give the target process the message
+            printf("Setting proc_msg...\n"); // Testing...
+            target->proc_message = msg;
+            target->msg_src = CURRENT->pid;
+
             List_remove(waiting_lists[1]);  // Remove target process from the waiting queue (it is already waiting_list[1]'s current process)
             if (List_append(ready_lists[target->priority], target) == -1) {
                 return -1;
@@ -237,33 +239,38 @@ int send(int pid, char *msg) {
             // Return success
             return 1;
         }
-        // If target is waiting for a receive, we cannot send it a message
-        else {
-            printf("Error: Target is already waiting for a receive\n");
-            return -1;
-        }
-    }
-    else {
-        // If the target process is not blocked:
-        // Move the current process to waiting list
-        CURRENT->state = BLOCKED;
-        CURRENT->waitState = WAITING_RECEIVE;
-        if(List_append(waiting_lists[0], CURRENT) == -1) {
-            return -1;
-        }
 
-        printf("Blocking process: \n");
-        procinfo_helper(CURRENT);
-                
-        // Run the next process in the queue
-        CURRENT = nextProcess();
-        CURRENT->state = RUNNING;
-
-        printf("New current process: \n");
-        procinfo_helper(CURRENT);
-        
-        return 1;
     }
+    // If the target process is not blocked, or is waiting for a receive:
+
+    if (target->pid == CURRENT->msg_src) {
+        printf("Error: Target process is waiting for a receive from current process\n");
+        return -1;
+    }
+
+    // Move the current process to waiting list
+    CURRENT->state = BLOCKED;
+    CURRENT->waitState = WAITING_RECEIVE;
+    if(List_append(waiting_lists[0], CURRENT) == -1) {
+        return -1;
+    }
+
+    // Give the target process the message
+    printf("Setting proc_msg...\n"); // Testing...
+    target->proc_message = msg;
+    target->msg_src = CURRENT->pid;
+
+    printf("Blocking process: \n");
+    procinfo_helper(CURRENT);
+            
+    // Run the next process in the queue
+    CURRENT = nextProcess();
+    CURRENT->state = RUNNING;
+
+    printf("New current process: \n");
+    procinfo_helper(CURRENT);
+    
+    return 1;
 }
 
 // Receive a message, block until one arrives
@@ -285,10 +292,8 @@ void receive() {
         printf("Received Message: %s\n", CURRENT->proc_message);
 
         // Move the source process back onto a ready list
-        // NOTE: WE MAY HAVE TO CHECK IF THE MSG SRC WAS THE INIT PROCESS
         PCB *src_proc = findProcess(CURRENT->msg_src);
         src_proc->state = READY;
-        src_proc->proc_message = NULL;
         List_remove(waiting_lists[0]);  // Dequeue sender process. Cannot use dequeue() here
         List_append(ready_lists[src_proc->priority], src_proc);
 
@@ -341,6 +346,8 @@ int reply(int pid, char *msg) {
 
     // If the target isn't current receiving a message, send a message 
     if(target->proc_message == NULL) {
+        
+        printf("Setting proc_msg...\n"); // Testing...
         target->proc_message = msg;
 
         // If the target was waiting for a reply, remove it from the list
@@ -733,5 +740,6 @@ void procinfo_helper(PCB *process) {
     } else {
         printf("BLOCKED\n");
     }
+    printf("    Process Message:    %s\n", process->proc_message);  // Testing...
     printf("\n");
 }
