@@ -72,6 +72,7 @@ int create(int priority) {
 int fork() {
     
     if (CURRENT == NULL || CURRENT->pid == 0) {
+        printf("Error: Cannot fork the init process\n");
         return -1;
     }
 
@@ -81,6 +82,7 @@ int fork() {
     PID_CURR++;
     newPCB->priority = CURRENT->priority;
     newPCB->state = READY;
+    newPCB->waitState = CURRENT->waitState;
 
     // Enqueue the new process
     if(List_append(ready_lists[newPCB->priority], newPCB) == -1) {
@@ -610,7 +612,15 @@ void totalinfo() {
     // Display the waiting lists
     for (int i = 0; i <= 1; i++) {
         List_first(waiting_lists[i]);
-        printf("--Waiting List %i:\n", i);
+
+        // For readability:
+        if (i == 0) {
+            printf("--Waiting List for Send: \n");
+        }
+        else {
+            printf("--Waiting List for Receive: \n");
+        }
+
         while (waiting_lists[i]->current != NULL) {
             // Print process info
             PCB *processPointer = waiting_lists[i]->current->item;
