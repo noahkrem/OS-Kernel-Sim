@@ -681,14 +681,17 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * read
 }
 
 static void checkInput() {
-    char input;
+    char input[20];
     char msg[256];
+    char int_in[256];
     int int_input;
     int int_input2;
     int rv;
-    scanf("%c", &input);
+    fgets(input, 20, stdin);
+    fflush(stdin);
+    char command = input[0];
     printf("---------------------------------------------------------------------------\n");
-    switch (input) {
+    switch (command) {
         case 'C':
             printf("Enter process priority (0 = high, 1 = norm, 2 = low): ");
             scanf("%d", &int_input);
@@ -730,10 +733,15 @@ static void checkInput() {
             quantum();
             break;
         case 'S':
+            char command;
             printf("Enter process ID of receiver: ");
-            scanf("%d", &int_input);
+            fgets(int_in, 256, stdin);
+            int_input = atoi(&int_in[0]);
             printf("Enter a message: ");
-            scanf("%s", msg);
+            // scanf("%s", msg);
+            fflush(stdin);
+            fgets(msg, 256, stdin);
+            command = msg[0];
             if(send(int_input, msg) == -1) {
                 printf("Failure: Could not send\n");
             }
@@ -746,9 +754,13 @@ static void checkInput() {
             break;
         case 'Y':
             printf("Enter process ID to reply to: ");
-            scanf("%d", &int_input);
-            printf("Enter message: ");
-            scanf("%s", msg);
+            fgets(int_in, 256, stdin);
+            int_input = atoi(&int_in[0]);
+            printf("Enter a message: ");
+            // scanf("%s", msg);
+            fflush(stdin);
+            fgets(msg, 256, stdin);
+            command = msg[0];
             // unblock sender
             if (reply(int_input, msg) == -1) {
                 printf("Failure: Could not reply\n");
@@ -893,6 +905,7 @@ static PCB* findProcess(int pid) {
             // If no match, advance
             ready_lists[i]->current = ready_lists[i]->current->next;
         }
+        // printf("Match not found in ready list %i...\n", i);  // Testing
     }
 
     // Search the waiting lists
@@ -906,6 +919,7 @@ static PCB* findProcess(int pid) {
             // If no match, advance
             waiting_lists[i]->current = waiting_lists[i]->current->next;
         }
+        // printf("Match not found in waiting list %i...\n", i);    // Testing
     }
 
     // Search the semaphore waiting lists
