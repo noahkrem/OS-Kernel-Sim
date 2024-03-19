@@ -117,11 +117,6 @@ int kill(int pid) {
         if (CURRENT->pid == pid) {
             toKill = CURRENT;
             CURRENT = nextProcess();
-            // If the current process is now the init process, print this information:
-            if (CURRENT == INIT) {
-                printf("--New Current Process:\n");
-                procinfo_helper(CURRENT);
-            }
             freeProcess(toKill);
             printf("Process %i killed\n", pid);
             proc_count--;
@@ -194,20 +189,19 @@ void quantum() {
     printf("--Expired process: \n");
     procinfo_helper(CURRENT);
 
-    // Find the next process to run, remove it from the appropriate queue
-    PCB *temp = nextProcess();
-
-    // If the only other ready process is the init process
-    if (temp == INIT) {
+    if (proc_count == 2) {
+        CURRENT->state = RUNNING;
         printf("--New Current Process: \n");
         procinfo_helper(CURRENT);
         return;
     }
-    // Otherwise, remove the new process from the appropriate queue
-    else {
-        findProcess(temp->pid);
-        List_remove(ready_lists[temp->priority]);
-    }
+
+    // Find the next process to run, remove it from the appropriate queue
+    PCB *temp = nextProcess();
+
+    // Remove the new process from the appropriate queue
+    findProcess(temp->pid);
+    List_remove(ready_lists[temp->priority]);
 
     // Enqueue the current process to the appropriate queue, change to the new process
     List_append(ready_lists[CURRENT->priority], CURRENT);
@@ -691,6 +685,7 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * read
     INIT->state = RUNNING;
     CURRENT = INIT;
     initMade = true;
+    proc_count++;
 
     // Start the input loop
     while(1) {
