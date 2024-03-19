@@ -100,7 +100,7 @@ int kill(int pid) {
     PCB *toKill = NULL;
 
     // If user is requesting to kill the init process
-    if (INIT == CURRENT || pid == INIT->pid) {
+    if (pid == INIT->pid) {
         printf("Error: Cannot kill init process\n");
         return -1;
     }
@@ -898,6 +898,8 @@ static PCB* nextProcess() {
     }
     else {
         INIT->state = RUNNING;
+        printf("--New Current Process: \n");
+        procinfo_helper(INIT);
         return INIT;
     }
 }
