@@ -1,3 +1,2 @@
 Bugs to Fix
-- Allow program to send more than one string
-- Should the same process be able to call a semaphore more than once?
+- Send bug: should block when sending

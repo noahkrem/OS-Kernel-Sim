@@ -17,7 +17,7 @@ enum ProcState {
 
 enum WaitState {
     WAITING_SEND,
-    WAITING_RECEIVE,
+    WAITING_REPLY,
     WAITING_SEM
 };
 
