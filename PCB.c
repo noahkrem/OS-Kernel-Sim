@@ -866,6 +866,7 @@ static PCB* nextProcess() {
     }
     else if(List_count(ready_lists[1]) != 0) {
         PCB *ret = dequeue(ready_lists[1]);
+        ret->state = RUNNING;
         printf("--New Current Process: \n");
         procinfo_helper(ret);
 
@@ -881,6 +882,7 @@ static PCB* nextProcess() {
     }
     else if(List_count(ready_lists[2]) != 0) {
         PCB *ret = dequeue(ready_lists[2]);
+        ret->state = RUNNING;
         printf("--New Current Process: \n");
         procinfo_helper(ret);
 
