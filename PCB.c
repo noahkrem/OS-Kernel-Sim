@@ -10,6 +10,7 @@ static PCB *INIT = NULL;
 static unsigned int PID_CURR = 0;
 static bool initMade = false;
 static unsigned int SEM_NUM = 0;
+static int proc_count = 0;
 
 static sem_t sem_array[NUM_SEMAPHORE]; 
 static List * ready_lists[NUM_READY_LIST];      // 0 - high priority, 1 - normal priority, 2 - low priority
@@ -62,6 +63,7 @@ int create(int priority) {
     }
 
     // Return pid of the created process
+    proc_count++;
     return newPCB->pid;
 }
 
@@ -89,6 +91,7 @@ int fork() {
         return -1;
     }
     else {
+        proc_count++;
         return newPCB->pid;  
     }
 }
@@ -101,6 +104,10 @@ int kill(int pid) {
 
     // If user is requesting to kill the init process
     if (pid == INIT->pid) {
+        if(proc_count == 1) {
+            // call exit
+            printf("Exiting simulation\n");
+        }
         printf("Error: Cannot kill init process\n");
         return -1;
     }
@@ -117,6 +124,7 @@ int kill(int pid) {
             }
             freeProcess(toKill);
             printf("Process %i killed\n", pid);
+            proc_count--;
             return 1;
         }
     }
@@ -154,6 +162,7 @@ int kill(int pid) {
             }
         }
         printf("Process %i killed\n", pid);
+        proc_count--;
         return 1;
     }
 
