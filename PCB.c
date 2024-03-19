@@ -98,15 +98,21 @@ int kill(int pid) {
     PCB *toKill = NULL;
 
     // If user is requesting to kill the init process
-    if (INIT == CURRENT) {
+    if (INIT == CURRENT || pid == INIT->pid) {
         printf("Error: Cannot kill init process\n");
         return -1;
     }
 
     if (CURRENT != NULL) {
+        // If we are requesting to kill the current process
         if (CURRENT->pid == pid) {
             toKill = CURRENT;
             CURRENT = nextProcess();
+            // If the current process is now the init process, print this information:
+            if (CURRENT == INIT) {
+                printf("--New Current Process:\n");
+                procinfo_helper(CURRENT);
+            }
             freeProcess(toKill);
             printf("Process %i killed\n", pid);
             return 1;
@@ -160,8 +166,6 @@ void exit_proc() {
 
     if (CURRENT != NULL) {
         kill(CURRENT->pid);
-        printf("--Current process: \n");
-        procinfo_helper(CURRENT);
     }
 }
 
@@ -179,10 +183,24 @@ void quantum() {
     printf("--Expired process: \n");
     procinfo_helper(CURRENT);
 
-    // Append current to the appropriate ready list
-    List_append(ready_lists[CURRENT->priority], CURRENT);
+    // Find the next process to run, remove it from the appropriate queue
+    PCB *temp = nextProcess();
 
-    CURRENT = nextProcess();
+    // If the only other ready process is the init process
+    if (temp == INIT) {
+        printf("--New Current Process: \n");
+        procinfo_helper(CURRENT);
+        return;
+    }
+    // Otherwise, remove the new process from the appropriate queue
+    else {
+        findProcess(temp->pid);
+        List_remove(ready_lists[temp->priority]);
+    }
+
+    // Enqueue the current process to the appropriate queue, change to the new process
+    List_append(ready_lists[CURRENT->priority], CURRENT);
+    CURRENT = temp;
 
 }
 
@@ -426,7 +444,7 @@ int sem_P(int sem_id) {
 
     // Check if semaphore has been created yet
     if (sem_array[sem_id].pList == NULL) {
-        printf("List null...\n\n\n");
+        printf("Error: Semaphore has not been created yet\n");
         return -1;
     }
 
@@ -811,6 +829,12 @@ static void checkInput() {
             totalinfo();
             break;
     } 
+    
+    // To improve the readability of our outputs
+    if (command == 'E' || command == 'F' || command == 'Q' || command == 'R' || command == 'T' || command == 'S' || command == 'Y') {
+        printf("---------------------------------------------------------------------------\n");
+    }
+    
 
 }
 
