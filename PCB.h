@@ -18,6 +18,7 @@ enum ProcState {
 enum WaitState {
     WAITING_SEND,
     WAITING_RECEIVE,
+    WAITING_SEM
 };
 
 typedef struct PCB_s PCB;

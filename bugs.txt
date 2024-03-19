@@ -1,5 +1,4 @@
 Bugs to Fix
-- Semaphores
 - Allow program to send more than one string
 - Check for "note:" comments and "Testing..." comments
 - Have programmed reply() to only work when there is already a message send to the current process
@@ -7,3 +6,6 @@ Bugs to Fix
     - After we have replied, does the target process have to then receive that new message?
 - Replying to a process that already holds a message does not work
 - Need to make it possible to kill processes in semaphores
+- Need to determine if we are allowed to create a semaphore with initial value 0
+    - Don't see why not
+- Should the same process be able to call a semaphore more than once?

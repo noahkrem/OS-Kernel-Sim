@@ -445,17 +445,18 @@ int new_Sem(int sem_id, unsigned int init) {
         return -1;
     }
     // Check that we have not already created a semaphore with the given ID
-    if (sem_array[sem_id].sem_value != -1) {
+    if (sem_array[sem_id].pList != NULL) {
         printf("Error: This semaphore has already been created!\n");
         return -1;
     }
-    if (init < 1) {
+    if (init < 0) {
         printf("Error: Invalid initialization value\n");
         return -1;
     }
 
     sem_array[sem_id].sem_value = init;
     sem_array[sem_id].pList = List_create();
+    SEM_NUM++;
 
 }
 
@@ -463,83 +464,153 @@ int new_Sem(int sem_id, unsigned int init) {
 //  IDs to be numbered 0 through 4.
 // Reports: Action taken (blocked or not) as well as success or failure.
 int sem_P(int sem_id) {
+    
     // Check for valid semaphore ID
     if (sem_id > 4 || sem_id < 0) {
-        printf("Error: Not a valid semaphore ID\n");
+        printf("Error: Invalid semaphore ID\n");
         return -1;
     }
 
-    // If the semaphore value is not less than 0, add the process to the waiting list
-    if(sem_array[sem_id].sem_value > 0) {
-        // Decrement semaphore value
-        sem_array[sem_id].sem_value--;
+    // Check if semaphore has been created yet
+    if (sem_array[sem_id].pList == NULL) {
+        printf("List null...\n\n\n");
+        return -1;
+    }
 
-        if(List_append(sem_array[sem_id].pList, CURRENT) == -1) {
-            return -1;
-        }
-        // Block the process
+    // Cannot block the init process
+    if (CURRENT == INIT) {
+        printf("Error: Cannot block the init process\n");
+        return -1;
+    }
+
+    // If sem value is greater than 0, decrement semaphore and return
+    if (sem_array[sem_id].sem_value > 0) {
+        sem_array[sem_id].sem_value--;
+        return 1;
+    }
+    else {
+
+        sem_array[sem_id].sem_value--;  // Decrement semaphore value
+        
+        // Update process information
+        CURRENT->waitState = WAITING_SEM;
         CURRENT->state = BLOCKED;
+
+        // Add process to the waiting list of the semaphore
+        List_append(sem_array[sem_id].pList, CURRENT);
+
+        // Output action taken
         printf("Blocking process: \n");
         procinfo_helper(CURRENT);
 
-        // Run the next process in the queue
+        // Run next process
         CURRENT = nextProcess();
         CURRENT->state = RUNNING;
+        
+        // Output action taken
         printf("New current process: \n");
         procinfo_helper(CURRENT);
 
         return 1;
     }
-    else {
-        printf("No resources available on this semaphore, process is not blocked\n");
-        return -1;
-    }
+
+    // // If the semaphore value is not less than 0, add the process to the waiting list
+    // if(sem_array[sem_id].sem_value > 0) {
+    //     // Decrement semaphore value
+    //     sem_array[sem_id].sem_value--;
+
+    //     if(List_append(sem_array[sem_id].pList, CURRENT) == -1) {
+    //         return -1;
+    //     }
+    //     // Block the process
+    //     CURRENT->state = BLOCKED;
+    //     printf("Blocking process: \n");
+    //     procinfo_helper(CURRENT);
+
+    //     // Run the next process in the queue
+    //     CURRENT = nextProcess();
+    //     CURRENT->state = RUNNING;
+    //     printf("New current process: \n");
+    //     procinfo_helper(CURRENT);
+
+    //     return 1;
+    // }
+    // else {
+    //     printf("Error: No resources available on this semaphore, process is not blocked\n");
+    //     return -1;
+    // }
 }
 
 // Execute the semaphore V operation on behalf of the running process. Assume semaphore 
 //  IDs to be numbered 0 through 4.
+// Reports: Action taken, as well as success or failure
 int sem_V(int sem_id) {
+    
     // Check for valid semaphore ID
     if (sem_id > 4 || sem_id < 0) {
-        printf("Error: Not a valid semaphore ID\n");
+        printf("Error: Invalid semaphore ID\n");
         return -1;
     }
-    // if(sem_array[sem_id].sem_value == 1) {
+
+    // Increment semaphore value
+    sem_array[sem_id].sem_value++;
+
+    // If there are processes waiting on this semaphore, unblock one process
+    if (sem_array[sem_id].sem_value <= 0) {
+        
+        PCB *temp = (PCB *)dequeue(sem_array[sem_id].pList);
+        temp->state = READY;
+
+        
+        // If the init process is currently running, set temp to running
+        if(CURRENT == INIT) {
+            INIT->state = READY;
+            temp->state = RUNNING;
+            CURRENT = temp;
+        }
+        // Else, send to appropriate queue
+        else {
+            List_append(ready_lists[temp->priority], temp); 
+        }
+
+        // Output action taken
+        printf("Process unblocked: \n");
+        procinfo_helper(temp);
+
+        return 1;
+    }
+    // Otherwise there were no processes waiting on this semaphore
+    else {
+        printf("No processes waiting on this semaphore\n");
+        return 1;
+    }
+
+    // // If the semaphore value is zero or less, wake up a process from the waiting list
+    // // if(sem_array[sem_id].sem_value <= 0) {
+    // if(List_count(sem_array[sem_id].pList) != 0) {
+    //     PCB* temp = (PCB *)dequeue(sem_array[sem_id].pList);
+    //     temp->state = READY;
+    //     if(CURRENT == INIT) {
+    //         INIT->state = READY;
+    //         printf("Init process expired: \n");
+    //         procinfo_helper(INIT);
+
+    //         temp->state = RUNNING;
+    //         CURRENT = temp;
+    //         printf("New current process: \n");
+    //         procinfo_helper(CURRENT);
+    //         return 1;
+    //     }
+    //     else if(List_append(ready_lists[temp->priority], temp) == -1) {
+    //         return -1;
+    //     }
+    //     return 1;
+    // } else {
     //     printf("No processes are in the semaphore, a process was not readied\n");
     //     printf("Current process: \n");
     //     procinfo_helper(CURRENT);
     //     return -1;
     // }
-
-    // Increment semaphore value
-    sem_array[sem_id].sem_value++;
-
-    // If the semaphore value is zero or less, wake up a process from the waiting list
-    // if(sem_array[sem_id].sem_value <= 0) {
-    if(List_count(sem_array[sem_id].pList) != 0) {
-        PCB* temp = (PCB *)dequeue(sem_array[sem_id].pList);
-        temp->state = READY;
-        if(CURRENT == INIT) {
-            INIT->state = READY;
-            printf("Init process expired: \n");
-            procinfo_helper(INIT);
-
-            temp->state = RUNNING;
-            CURRENT = temp;
-            printf("New current process: \n");
-            procinfo_helper(CURRENT);
-            return 1;
-        }
-        else if(List_append(ready_lists[temp->priority], temp) == -1) {
-            return -1;
-        }
-        return 1;
-    } else {
-        printf("No processes are in the semaphore, a process was not readied\n");
-        printf("Current process: \n");
-        procinfo_helper(CURRENT);
-        return -1;
-    }
     
 }
 
@@ -602,6 +673,22 @@ void totalinfo() {
         }
     }
 
+    // Display the semaphore lists
+    for (int i = 0; i < 5; i++) {
+        if (sem_array[i].pList != NULL) {
+            
+            List_first(sem_array[i].pList);
+            printf("--Semaphore List %i:\n", i);
+            while (sem_array[i].pList->current != NULL) {
+                // Print process info
+                PCB *processPointer = sem_array[i].pList->current->item;
+                procinfo_helper(processPointer);
+                // Advance
+                sem_array[i].pList->current = sem_array[i].pList->current->next;
+            }
+        }
+    }
+
 }
 
 
@@ -626,7 +713,7 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * read
     waiting_lists[1] = waitingReceive;
 
     for (int i = 0; i < 5; i++) {
-        sem_array[i].sem_value = -1;    // Set to one, to later check semaphore initialization
+        sem_array[i].pList = NULL;    
     }
 
     // Initialize the special init process
@@ -722,9 +809,9 @@ static void checkInput() {
             }
             break;
         case 'N':
-            printf("Please enter the semaphore ID of the new semaphore: ");
+            printf("Enter the new semaphore ID: ");
             scanf("%d", &int_input);
-            printf("Please enter the initial value of the semaphore: ");
+            printf("Enter initial value of new semaphore: ");
             scanf("%d", &int_input2);
             // need to figure out number
             if(new_Sem(int_input, int_input2) == -1) {
@@ -735,27 +822,27 @@ static void checkInput() {
             }
             break;
         case 'P':
-            printf("Please enter the ID of the semaphore\n");
+            printf("Enter a semaphore ID: ");
             scanf("%d", &int_input);
             if(sem_P(int_input) == -1) {
-                printf("failure\n");
+                printf("Failure: Could not execute semaphore P\n");
             }
             else {
-                printf("success\n");
+                printf("Success: Semaphore P executed\n");
             }
             break;
         case 'V':
-            printf("Please enter the ID of the semaphore\n");
+            printf("Enter a semaphore ID: ");
             scanf("%d", &int_input);
             if(sem_V(int_input) == -1) {
-                printf("failure\n");
+                printf("Failure: Could not execute semaphore V\n");
             }
             else {
-                printf("success\n");
+                printf("Success: Semaphore V executed\n");
             }
             break;
         case 'I':
-            printf("Please enter the pid of the process\n");
+            printf("Enter a process ID: ");
             scanf("%d", &int_input);
             procinfo(int_input);
             break;
