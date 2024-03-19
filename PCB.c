@@ -221,7 +221,6 @@ int send(int pid, char *msg) {
         if (target->waitState == WAITING_SEND) {
             
             // Give the target process the message
-            printf("Setting proc_msg...\n"); // Testing...
             target->proc_message = strdup(msg);
             target->msg_src = CURRENT->pid;
 
@@ -264,19 +263,14 @@ int send(int pid, char *msg) {
     }
 
     // Give the target process the message
-    printf("Setting proc_msg...\n"); // Testing...
     target->proc_message = strdup(msg);
     target->msg_src = CURRENT->pid;
 
-    printf("Blocking process: \n");
+    printf("--Blocking process: \n");
     procinfo_helper(CURRENT);
             
     // Run the next process in the queue
     CURRENT = nextProcess();
-    CURRENT->state = RUNNING;
-
-    printf("New current process: \n");
-    procinfo_helper(CURRENT);
     
     return 1;
 }
@@ -326,15 +320,12 @@ void receive() {
         CURRENT->state = BLOCKED;
         CURRENT->waitState = WAITING_SEND;
         List_append(waiting_lists[1], CURRENT);
-        printf("Blocking process: \n");
+        printf("--Blocking process: \n");
         procinfo_helper(CURRENT);
 
 
         // Run the next process in the queue
         CURRENT = nextProcess();
-        CURRENT->state = RUNNING;
-        printf("New current process: \n");
-        procinfo_helper(CURRENT);
         
         return;
     }
@@ -342,12 +333,11 @@ void receive() {
 
 // Unblocks sender and delivers reply.
 // Reports: Success or failure.
-// Assumption: We can only reply to a process that has previously sent a message to the current process
 int reply(int pid, char *msg) {
     
     // If we try to send to the currently running process, operation fails
     if (CURRENT->pid == pid) {
-        printf("Error: Cannot send to currently running process\n");
+        printf("Error: Cannot reply to currently running process\n");
         return -1;
     }
 
@@ -359,74 +349,35 @@ int reply(int pid, char *msg) {
     }
 
     // If the target already has a message queued
-    if (target->proc_message != NULL) {
+    if (target->reply_msg != NULL) {
         printf("Error: Target already has a message queued\n");
         return -1;
     }
 
-    // We must not block the init process
-    if (target->state != BLOCKED && CURRENT == INIT) {
-        printf("Error: Cannot block the init process\n");
-        return -1;
-    }
-
-    // We cannot reply if the current process has not been sent a message
-    if (CURRENT->proc_message == NULL) {
-        printf("Error: Current process has not been sent a message\n");
-        return -1;
-    }
-
-    // We can only reply to a process that has previously sent a message to the current process
-    if (target != findProcess(CURRENT->msg_src)) {
-        printf("Error: Current process has never received a message from target\n");
+    // If the target has not been blocked by a send, we cannot reply to it
+    if (target->state != BLOCKED || (target->state == BLOCKED && target->waitState != WAITING_RECEIVE)) {
+        printf("Error: Target is not waiting for a receive\n");
         return -1;
     }
 
     // If the target doesn't currently hold a message, reply with a message:
-    target->proc_message = strdup(msg);
-    target->msg_src = CURRENT->pid;
-
-    // If the target was waiting for a reply, remove it from the list
-    if (target->state == BLOCKED && target->waitState == WAITING_RECEIVE) {
-        target->state = READY;
-        if (List_append(ready_lists[target->priority], target) == -1) {
-            return -1;
-        }
-        List_remove(waiting_lists[0]);
-
-        // Output necessary messages to the screen
-        printf("Message received from process %i\n", target->msg_src);
-        printf("Received Message: %s\n", target->proc_message);
-        target->state = READY;
-        target->msg_src = -1;
-        free(target->proc_message);
-        target->proc_message = NULL;
-
-        // Release message information from current process
-        CURRENT->msg_src = -1;
-        free(CURRENT->proc_message);
-        CURRENT->proc_message = NULL;
-
-        // If the current process is the INIT process
-        if (CURRENT == INIT) {
-            CURRENT = nextProcess();
-        }
+    target->reply_msg = strdup(msg);
+    target->reply_src = CURRENT->pid;
         
-        // Return success
-        return 1;
+    // Remove the target from the waiting list
+    List_remove(waiting_lists[0]);    
+    target->state = READY;
+    if (List_append(ready_lists[target->priority], target) == -1) {
+        return -1;
     }
-    // If the target process was not waiting for a reply
-    else {
 
-        target->msg_src = CURRENT->pid;
-        target->proc_message = strdup(msg);
-
-        CURRENT->state = BLOCKED;
-        CURRENT->waitState = WAITING_RECEIVE;
-        List_append(waiting_lists[1], CURRENT);
+    // If the current process is the INIT process
+    if (CURRENT == INIT) {
         CURRENT = nextProcess();
-        CURRENT->state = RUNNING;
     }
+    
+    // Return success
+    return 1;
 }
 
 // Initialize the named semaphore with the value given. IDs can take a value from 0 to 4. 
@@ -860,21 +811,63 @@ static void freeProcess(PCB *process) {
        free(process->proc_message);
        process->proc_message = NULL;
     }
+    if (process->reply_msg != NULL) {
+        free(process->reply_msg);
+        process->reply_msg = NULL;
+    }
     free(process);
-    
     process = NULL;
 }
 
+// Called whenever we switch to a new process.
+// Outputs process scheduling information.
 static PCB* nextProcess() {
     
     if (List_count(ready_lists[0]) != 0) {
-        return dequeue(ready_lists[0]);
+        PCB *ret = dequeue(ready_lists[0]);
+        ret->state = RUNNING;
+        printf("--New Current Process: \n");
+        procinfo_helper(ret);
+
+        // If ret holds a reply, print it to the screen immediately
+        if (ret->reply_msg != NULL) {
+            printf("Reply received from process %i\n", ret->reply_src);
+            printf("Reply message: %s\n", ret->reply_msg);
+            ret->reply_src = -1;
+            free(ret->reply_msg);
+            ret->reply_msg = NULL;
+        }
+        return ret;
     }
     else if(List_count(ready_lists[1]) != 0) {
-        return dequeue(ready_lists[1]);
+        PCB *ret = dequeue(ready_lists[1]);
+        printf("--New Current Process: \n");
+        procinfo_helper(ret);
+
+        // If ret holds a reply, print it to the screen immediately
+        if (ret->reply_msg != NULL) {
+            printf("Reply received from process %i\n", ret->reply_src);
+            printf("Reply message: %s\n", ret->reply_msg);
+            ret->reply_src = -1;
+            free(ret->reply_msg);
+            ret->reply_msg = NULL;
+        }
+        return ret;
     }
     else if(List_count(ready_lists[2]) != 0) {
-        return dequeue(ready_lists[2]);
+        PCB *ret = dequeue(ready_lists[2]);
+        printf("--New Current Process: \n");
+        procinfo_helper(ret);
+
+        // If ret holds a reply, print it to the screen immediately
+        if (ret->reply_msg != NULL) {
+            printf("Reply received from process %i\n", ret->reply_src);
+            printf("Reply message: %s\n", ret->reply_msg);
+            ret->reply_src = -1;
+            free(ret->reply_msg);
+            ret->reply_msg = NULL;
+        }
+        return ret;
     }
     else {
         INIT->state = RUNNING;
@@ -939,7 +932,7 @@ static PCB* findProcess(int pid) {
 }
 
 // Helper function to print process information to the screen
-void procinfo_helper(PCB *process) {
+static void procinfo_helper(PCB *process) {
 
     printf("    Process ID:         %i\n", process->pid);
     printf("    Process Priority:   %i\n", process->priority);
@@ -951,6 +944,14 @@ void procinfo_helper(PCB *process) {
     } else {
         printf("BLOCKED\n");
     }
-    printf("    Process Message:    %s\n", process->proc_message);  // Testing...
+
+    // Only print these sections if not null
+    if (process->proc_message != NULL) {
+        printf("    Process Message:    %s\n", process->proc_message);
+    }
+    if (process->reply_msg != NULL) {
+        printf("    Reply Message:      %s\n", process->reply_msg);
+    }
+    
     printf("\n");
 }

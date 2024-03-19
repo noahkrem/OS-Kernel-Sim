@@ -9,3 +9,4 @@ Bugs to Fix
 - Need to determine if we are allowed to create a semaphore with initial value 0
     - Don't see why not
 - Should the same process be able to call a semaphore more than once?
+- Might want to make a function that actually switches processes, and prints any held replies upon switching

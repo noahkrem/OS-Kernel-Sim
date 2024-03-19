@@ -29,6 +29,10 @@ struct PCB_s {
     enum WaitState waitState;
     char *proc_message;
     int msg_src;
+
+    // Since a reply is handled differently than the a send, we must store it elsewhere
+    char *reply_msg;
+    int reply_src;
 };
 
 typedef struct semaphore_t sem_t;
@@ -112,6 +116,6 @@ static PCB* nextProcess();
 static PCB *findProcess(int pid);
 
 // Helper function to print process information to the screen
-void procinfo_helper(PCB *process);
+static void procinfo_helper(PCB *process);
 
 #endif
