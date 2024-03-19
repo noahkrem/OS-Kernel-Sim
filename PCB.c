@@ -893,7 +893,6 @@ static PCB* findProcess(int pid) {
             // If no match, advance
             ready_lists[i]->current = ready_lists[i]->current->next;
         }
-        // printf("Match not found in ready list %i...\n", i);  // Testing
     }
 
     // Search the waiting lists
@@ -907,7 +906,6 @@ static PCB* findProcess(int pid) {
             // If no match, advance
             waiting_lists[i]->current = waiting_lists[i]->current->next;
         }
-        // printf("Match not found in waiting list %i...\n", i);    // Testing
     }
 
     // Search the semaphore waiting lists
