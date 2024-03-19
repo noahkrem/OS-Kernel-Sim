@@ -169,33 +169,21 @@ void exit_proc() {
 // Reports: Action taken (process scheduling information).
 void quantum() {
     
-    if(CURRENT == NULL) {
+    if(CURRENT == INIT) {
+        printf("--New Current Process: \n");
+        procinfo_helper(CURRENT);
         return;
     }
 
-    PCB* temp = CURRENT;
+    CURRENT->state = READY;
+    printf("--Expired process: \n");
+    procinfo_helper(CURRENT);
+
+    // Append current to the appropriate ready list
+    List_append(ready_lists[CURRENT->priority], CURRENT);
+
     CURRENT = nextProcess();
 
-    if(CURRENT == NULL) {
-        CURRENT = temp;
-        return;
-    }
-
-    if(CURRENT->pid == 0) {
-        List_append(ready_lists[CURRENT->priority], CURRENT);
-            CURRENT = temp;
-    }
-    else {
-        CURRENT->state = RUNNING;
-        temp->state = READY;
-        List_append(ready_lists[temp->priority], temp);
-    }
-
-    printf("Expired process: \n");
-    procinfo_helper(temp);
-
-    printf("New current process: \n");
-    procinfo_helper(CURRENT);
 }
 
 // Send a message to another process, block until reply.
