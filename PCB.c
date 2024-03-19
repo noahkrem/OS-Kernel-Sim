@@ -107,6 +107,7 @@ int kill(int pid) {
         if(proc_count == 1) {
             // call exit
             printf("Exiting simulation\n");
+            return 1;
         }
         printf("Error: Cannot kill init process\n");
         return -1;
