@@ -127,9 +127,22 @@ int kill(int pid) {
                 List_remove(waiting_lists[0]);
                 freeProcess(toKill);
             }
-            if (toKill->waitState == WAITING_RECEIVE) {
+            else if (toKill->waitState == WAITING_RECEIVE) {
                 List_remove(waiting_lists[1]);
                 freeProcess(toKill);
+            }
+            // If the process is on a semaphore list
+            else {
+                for (int i = 0; i < 5; i++) {
+                    if(sem_array[i].sem_init == true) {
+                        if(List_curr(sem_array[i].pList) == toKill) {
+                            List_remove(sem_array[i].pList);
+                            freeProcess(toKill);
+                            sem_array[i].sem_value++;
+                            break;
+                        }
+                    }
+                }
             }
         }
         printf("Process %i killed\n", pid);
@@ -406,6 +419,7 @@ int new_Sem(int sem_id, unsigned int init) {
     }
 
     sem_array[sem_id].sem_value = init;
+    sem_array[sem_id].sem_init = true;
     sem_array[sem_id].pList = List_create();
     SEM_NUM++;
 
@@ -456,11 +470,6 @@ int sem_P(int sem_id) {
 
         // Run next process
         CURRENT = nextProcess();
-        CURRENT->state = RUNNING;
-        
-        // Output action taken
-        printf("New current process: \n");
-        procinfo_helper(CURRENT);
 
         return 1;
     }
@@ -665,6 +674,7 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * read
 
     for (int i = 0; i < 5; i++) {
         sem_array[i].pList = NULL;    
+        sem_array[i].sem_init = false;
     }
 
     // Initialize the special init process
@@ -914,7 +924,7 @@ static PCB* findProcess(int pid) {
 
     // Search the semaphore waiting lists
     for(int i = 0; i <= 4; i++) {
-            if(sem_array[i].sem_value != -1) {
+            if(sem_array[i].sem_init == true) {
                 List_first(sem_array[i].pList);
                 while (sem_array[i].pList->current != NULL) {
                     // Check for a match

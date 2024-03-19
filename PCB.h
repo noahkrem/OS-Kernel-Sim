@@ -37,6 +37,7 @@ struct PCB_s {
 
 typedef struct semaphore_t sem_t;
 struct semaphore_t {
+    bool sem_init;
     int sem_value;
     List *pList;        // Processes blocked on this semaphore
 };
