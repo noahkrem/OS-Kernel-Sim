@@ -229,13 +229,6 @@ int send(int pid, char *msg) {
             if (List_append(ready_lists[target->priority], target) == -1) {
                 return -1;
             } 
-            // Output necessary reception message
-            printf("Message received from process %i\n", target->msg_src);
-            printf("Received Message: %s\n", target->proc_message);
-            target->state = READY;
-            target->msg_src = -1;
-            free(target->proc_message);
-            target->proc_message = NULL;
 
             // If the currently running process is the init process, make the target the newly running process
             if (CURRENT == INIT) {
@@ -294,23 +287,10 @@ void receive() {
         printf("Message received from process %i\n", CURRENT->msg_src);
         printf("Received Message: %s\n", CURRENT->proc_message);
 
-        // Move the source process back onto a ready list
-        PCB *src_proc = findProcess(CURRENT->msg_src);
-        src_proc->state = READY;
-        List_remove(waiting_lists[0]);  // Dequeue sender process. Cannot use dequeue() here
-        List_append(ready_lists[src_proc->priority], src_proc);
-
         // Clear the message information from the current process
         free(CURRENT->proc_message);
         CURRENT->proc_message = NULL;
         CURRENT->msg_src = -1;
-
-        // If the current process is the init process, make the source process the new current
-        if (CURRENT == INIT) {
-            dequeue(ready_lists[src_proc->priority]);
-            src_proc->state = RUNNING;
-            CURRENT = src_proc;
-        }
 
         return;
     }
