@@ -224,6 +224,7 @@ int send(int pid, char *msg) {
             // Give the target process the message
             target->proc_message = strdup(msg);
             target->msg_src = CURRENT->pid;
+            target->state = READY;
 
             List_remove(waiting_lists[1]);  // Remove target process from the waiting queue (it is already waiting_list[1]'s current process)
             if (List_append(ready_lists[target->priority], target) == -1) {
