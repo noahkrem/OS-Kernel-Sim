@@ -264,6 +264,21 @@ int send(int pid, char *msg) {
                 CURRENT = target;
             }
 
+            // Move the current process to waiting list
+            CURRENT->state = BLOCKED;
+            CURRENT->waitState = WAITING_REPLY;
+            if(List_append(waiting_lists[1], CURRENT) == -1) {
+                return -1;
+            }
+
+            printf("--Blocking process: \n");
+            procinfo_helper(CURRENT);
+                    
+            // Run the next process in the queue
+            CURRENT = nextProcess();
+
+
+
             // Return success
             return 1;
         }
