@@ -141,7 +141,7 @@ int kill(int pid) {
                 List_remove(waiting_lists[0]);
                 freeProcess(toKill);
             }
-            else if (toKill->waitState == WAITING_RECEIVE) {
+            else if (toKill->waitState == WAITING_REPLY) {
                 List_remove(waiting_lists[1]);
                 freeProcess(toKill);
             }
@@ -252,7 +252,7 @@ int send(int pid, char *msg) {
             target->msg_src = CURRENT->pid;
             target->state = READY;
 
-            List_remove(waiting_lists[1]);  // Remove target process from the waiting queue (it is already waiting_list[1]'s current process)
+            List_remove(waiting_lists[0]);  // Remove target process from the waiting queue (it is already waiting_list[1]'s current process)
             if (List_append(ready_lists[target->priority], target) == -1) {
                 return -1;
             } 
@@ -278,8 +278,8 @@ int send(int pid, char *msg) {
 
     // Move the current process to waiting list
     CURRENT->state = BLOCKED;
-    CURRENT->waitState = WAITING_RECEIVE;
-    if(List_append(waiting_lists[0], CURRENT) == -1) {
+    CURRENT->waitState = WAITING_REPLY;
+    if(List_append(waiting_lists[1], CURRENT) == -1) {
         return -1;
     }
 
@@ -327,7 +327,7 @@ void receive() {
         // Move current process to the waiting list
         CURRENT->state = BLOCKED;
         CURRENT->waitState = WAITING_SEND;
-        List_append(waiting_lists[1], CURRENT);
+        List_append(waiting_lists[0], CURRENT);
         printf("--Blocking process: \n");
         procinfo_helper(CURRENT);
 
@@ -363,8 +363,8 @@ int reply(int pid, char *msg) {
     }
 
     // If the target has not been blocked by a send, we cannot reply to it
-    if (target->state != BLOCKED || (target->state == BLOCKED && target->waitState != WAITING_RECEIVE)) {
-        printf("Error: Target is not waiting for a receive\n");
+    if (target->state != BLOCKED || (target->state == BLOCKED && target->waitState != WAITING_REPLY)) {
+        printf("Error: Target is not waiting for a reply\n");
         return -1;
     }
 
@@ -373,7 +373,7 @@ int reply(int pid, char *msg) {
     target->reply_src = CURRENT->pid;
         
     // Remove the target from the waiting list
-    List_remove(waiting_lists[0]);    
+    List_remove(waiting_lists[1]);    
     target->state = READY;
     if (List_append(ready_lists[target->priority], target) == -1) {
         return -1;
@@ -624,7 +624,7 @@ void totalinfo() {
             printf("--Waiting List for Send: \n");
         }
         else {
-            printf("--Waiting List for Receive: \n");
+            printf("--Waiting List for Reply: \n");
         }
 
         while (waiting_lists[i]->current != NULL) {
