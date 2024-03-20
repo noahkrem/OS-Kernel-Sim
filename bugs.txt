@@ -1,2 +1,0 @@
-Bugs to Fix
-- Send bug: should block when sending

@@ -31,3 +31,10 @@ Semaphore V (V) - Execute the semaphore V operation on behalf of the running pro
 Procinfo (I) - Dump complete state information of process to screen.
 
 Totalinfo (T) - Display all process queues and their contents.
+
+
+## Other Info
+
+Note that the above commands must be in upper case. Each command consists of a single character, and if other information is needed, the program will prompt the user.
+
+To run this code, make the executable using the "make" command. Then, execute "./sim" at the command line. 

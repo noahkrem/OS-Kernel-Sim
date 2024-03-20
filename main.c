@@ -1,3 +1,14 @@
+/*
+
+Filename: main.c
+
+Author(s): Noah Kremler & Hugo Kwon
+
+Description: Please see the "Other Info" section in our README for more information on how to run this code. 
+
+*/
+
+
 #include "List.h"
 #include "PCB.h"
 #include <stdio.h>
@@ -6,16 +17,6 @@
 #include <pthread.h>
 
 
-
-// void* dequeue(List list) {
-//     list.List_first();
-//     Node tempNode = list.List_remove();
-//     return tempNode;
-// }
-
-// void enqueue(List list, void* item) {
-//     List_append(item);
-// }
 
 int main(int argc, char *argv[]) {
     

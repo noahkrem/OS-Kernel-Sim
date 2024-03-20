@@ -1,3 +1,14 @@
+/*
+
+Filename: PCB.c
+
+Author(s): Noah Kremler & Hugo Kwon
+
+Description: An operating system simulation which supports a few basic OS commands.
+
+*/
+
+
 
 #include "PCB.h"
 #include <stdio.h>
