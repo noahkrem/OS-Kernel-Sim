@@ -473,31 +473,6 @@ int sem_P(int sem_id) {
         return 1;
     }
 
-    // // If the semaphore value is not less than 0, add the process to the waiting list
-    // if(sem_array[sem_id].sem_value > 0) {
-    //     // Decrement semaphore value
-    //     sem_array[sem_id].sem_value--;
-
-    //     if(List_append(sem_array[sem_id].pList, CURRENT) == -1) {
-    //         return -1;
-    //     }
-    //     // Block the process
-    //     CURRENT->state = BLOCKED;
-    //     printf("Blocking process: \n");
-    //     procinfo_helper(CURRENT);
-
-    //     // Run the next process in the queue
-    //     CURRENT = nextProcess();
-    //     CURRENT->state = RUNNING;
-    //     printf("New current process: \n");
-    //     procinfo_helper(CURRENT);
-
-    //     return 1;
-    // }
-    // else {
-    //     printf("Error: No resources available on this semaphore, process is not blocked\n");
-    //     return -1;
-    // }
 }
 
 // Execute the semaphore V operation on behalf of the running process. Assume semaphore 
@@ -508,6 +483,12 @@ int sem_V(int sem_id) {
     // Check for valid semaphore ID
     if (sem_id > 4 || sem_id < 0) {
         printf("Error: Invalid semaphore ID\n");
+        return -1;
+    }
+
+    // Check if semaphore has been created yet
+    if (sem_array[sem_id].pList == NULL) {
+        printf("Error: Semaphore has not been created yet\n");
         return -1;
     }
 
@@ -543,33 +524,6 @@ int sem_V(int sem_id) {
         printf("No processes waiting on this semaphore\n");
         return 1;
     }
-
-    // // If the semaphore value is zero or less, wake up a process from the waiting list
-    // // if(sem_array[sem_id].sem_value <= 0) {
-    // if(List_count(sem_array[sem_id].pList) != 0) {
-    //     PCB* temp = (PCB *)dequeue(sem_array[sem_id].pList);
-    //     temp->state = READY;
-    //     if(CURRENT == INIT) {
-    //         INIT->state = READY;
-    //         printf("Init process expired: \n");
-    //         procinfo_helper(INIT);
-
-    //         temp->state = RUNNING;
-    //         CURRENT = temp;
-    //         printf("New current process: \n");
-    //         procinfo_helper(CURRENT);
-    //         return 1;
-    //     }
-    //     else if(List_append(ready_lists[temp->priority], temp) == -1) {
-    //         return -1;
-    //     }
-    //     return 1;
-    // } else {
-    //     printf("No processes are in the semaphore, a process was not readied\n");
-    //     printf("Current process: \n");
-    //     procinfo_helper(CURRENT);
-    //     return -1;
-    // }
     
 }
 
