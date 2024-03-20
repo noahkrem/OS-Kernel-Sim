@@ -241,7 +241,7 @@ int send(int pid, char *msg) {
         printf("Error: Cannot block the init process\n");
         return -1;
     }
-    else if (target->state == BLOCKED && target->waitState != WAITING_SEND) {
+    else if (target->state == BLOCKED && target->waitState != WAITING_SEND && CURRENT == INIT) {
         printf("Error: Cannot block the init process\n");
         return -1;
     }
