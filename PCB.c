@@ -241,6 +241,10 @@ int send(int pid, char *msg) {
         printf("Error: Cannot block the init process\n");
         return -1;
     }
+    else if (target->state == BLOCKED && target->waitState != WAITING_SEND) {
+        printf("Error: Cannot block the init process\n");
+        return -1;
+    }
 
     // Check if the receiving process is blocked
     if (target->state == BLOCKED) {
@@ -1000,10 +1004,10 @@ static void procinfo_helper(PCB *process) {
 
     // Only print these sections if not null
     if (process->proc_message != NULL) {
-        printf("    Process Message:    %s\n", process->proc_message);
+        printf("    Process Message:    %s", process->proc_message);
     }
     if (process->reply_msg != NULL) {
-        printf("    Reply Message:      %s\n", process->reply_msg);
+        printf("    Reply Message:      %s", process->reply_msg);
     }
     
     printf("\n");
