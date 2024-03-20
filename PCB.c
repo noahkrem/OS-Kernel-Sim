@@ -11,6 +11,7 @@ static unsigned int PID_CURR = 0;
 static bool initMade = false;
 static unsigned int SEM_NUM = 0;
 static int proc_count = 0;
+static bool exit_loop = false;
 
 static sem_t sem_array[NUM_SEMAPHORE]; 
 static List * ready_lists[NUM_READY_LIST];      // 0 - high priority, 1 - normal priority, 2 - low priority
@@ -106,7 +107,9 @@ int kill(int pid) {
     if (pid == INIT->pid) {
         if(proc_count == 1) {
             // call exit
-            printf("Exiting simulation\n");
+            printf("Init process killed \n");
+            exit_sim();
+            return 1;
         }
         printf("Error: Cannot kill init process\n");
         return -1;
@@ -690,11 +693,13 @@ void initProgram(List * readyTop, List * readyNorm, List * readyLow, List * read
     CURRENT = INIT;
     initMade = true;
     proc_count++;
+    exit_loop = false;
 
     // Start the input loop
-    while(1) {
+    while(!exit_loop) {
         checkInput();
     }
+    printf("Exiting Simulation!\n");
 }
 
 static void checkInput() {
@@ -991,4 +996,10 @@ static void procinfo_helper(PCB *process) {
     }
     
     printf("\n");
+}
+
+static void exit_sim() {
+    freeProcess(INIT);
+    exit_loop = true;
+    return;
 }
