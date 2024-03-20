@@ -192,7 +192,7 @@ void quantum() {
     printf("--Expired process: \n");
     procinfo_helper(CURRENT);
 
-    if (proc_count == 2) {
+    if (proc_count == 2 || readyListEmpty()) {
         CURRENT->state = RUNNING;
         printf("--New Current Process: \n");
         procinfo_helper(CURRENT);
@@ -965,6 +965,15 @@ static void procinfo_helper(PCB *process) {
     }
     
     printf("\n");
+}
+
+static bool readyListEmpty() {
+    for(int i = 0; i < 3; i++) {
+        if(List_count(ready_lists[i]) != 0){
+            return false;
+        }
+    }
+    return true;
 }
 
 static void exit_sim() {

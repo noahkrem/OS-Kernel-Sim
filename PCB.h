@@ -119,6 +119,8 @@ static PCB *findProcess(int pid);
 // Helper function to print process information to the screen
 static void procinfo_helper(PCB *process);
 
+static bool readyListEmpty();
+
 static void exit_sim();
 
 #endif
