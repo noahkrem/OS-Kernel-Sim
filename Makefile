@@ -1,16 +1,35 @@
-all: sim
+# Compiler and flags
+CC = gcc
+CFLAGS = -Wall -Wextra -Iinclude
 
-sim: List.o PCB.o main.o
-	gcc List.o PCB.o main.o -o sim
+# Directories
+SRC_DIR = src
+OBJ_DIR = build
+INC_DIR = include
 
-List.o: List.c List.h
-	gcc -c List.c
+# Files
+SRCS = $(wildcard $(SRC_DIR)/*.c)
+OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
+TARGET = sim
 
-PCB.o: PCB.c PCB.h List.h
-	gcc -c PCB.c
+# Default rule
+all: $(TARGET)
 
-main.o: main.c List.h PCB.h
-	gcc -c main.c
+# Linking rule
+$(TARGET): $(OBJS)
+	$(CC) $(OBJS) -o $@
 
+# Compilation rule
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Ensure build directory exists
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
+# Clean rule
 clean:
-	rm -f sim *.o
+	rm -rf $(OBJ_DIR) $(TARGET)
+
+# Phony targets
+.PHONY: all clean
